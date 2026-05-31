@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { Container } from "@/components/ui/Container";
+import Header from "@/components/Header";
 
 // 홈페이지 첫 화면을 보여주는 컴포넌트입니다.
 export default function Home() {
@@ -22,8 +23,9 @@ export default function Home() {
       </Head>
       {/* 메인 전체 레이아웃 */}
       <main className="min-h-screen">
+        <Header theme={theme} setTheme={setTheme} />
         {/* 화면 중앙에 내용을 배치하는 컨테이너 */}
-        <Container className="py-12 lg:py-16">
+        <Container>
           <h1 className="text-h1 text-main">ㅎㅇㅎㅇ</h1>{" "}
         </Container>
       </main>
