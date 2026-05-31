@@ -23,19 +23,19 @@ export default function Login() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       {/* 로그인 페이지 전체 레이아웃 */}
-      <main className="min-h-screen bg-bg text-text">
+      <main className="min-h-screen bg-primary-900 text-white">
         {/* 화면 가운데에 로그인 폼을 맞추는 컨테이너 */}
         <Container className="flex min-h-screen items-center justify-center py-16">
           <div className="card w-full max-w-2xl">
             {/* 로그인 폼 제목과 설명 */}
             <div className="mb-10 space-y-4">
-              <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-b2_body_m font-semibold text-primary">
                 NoCode Tool
               </span>
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              <h1 className="text-h1 font-semibold tracking-tight text-white">
                 빠르게 앱을 시작하려면 로그인하세요
               </h1>
-              <p className="max-w-2xl text-slate-400">
+              <p className="max-w-2xl text-b1_body_r text-muted">
                 간단한 로그인 후 프로젝트 목록으로 이동하여 노코드 앱을 관리할
                 수 있습니다.
               </p>
@@ -43,7 +43,7 @@ export default function Login() {
             {/* 로그인 입력 폼 */}
             <form className="space-y-6" onSubmit={handleSubmit}>
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-slate-300">
+                <span className="text-b2_body_m font-medium text-secondary">
                   이메일
                 </span>
                 <input
@@ -54,7 +54,7 @@ export default function Login() {
                 />
               </label>
               <label className="block space-y-2">
-                <span className="text-sm font-medium text-slate-300">
+                <span className="text-b2_body_m font-medium text-secondary">
                   비밀번호
                 </span>
                 <input

@@ -4,27 +4,61 @@
 
 /* 사이트에서 쓰는 기본 색상과 모양 값을 정의합니다. */
 :root {
-  --color-primary: 99 102 241;
-  --color-accent: 247 178 59;
-  --color-bg: 15 23 42;
-  --color-surface: 17 24 39;
-  --color-text: 226 232 240;
-  --color-muted: 148 163 184;
+  --primary-900: #312e81;
+  --primary-800: #3730a3;
+  --primary-700: #4338ca;
+  --primary-600: #4f46e5;
+  --primary-500: #6366f1;
+  --primary-400: #818cf8;
+  --primary-300: #a5b4fc;
+  --primary-200: #c7d2fe;
+  --primary-100: #e0e7ff;
+  --primary-50: #eef2ff;
+
+  --point-900: #895906;
+  --point-800: #b07207;
+  --point-700: #d78c09;
+  --point-600: #f59e0b;
+  --point-500: #f7b23b;
+  --point-400: #f8c162;
+  --point-300: #f9d18a;
+  --point-200: #fbe0b1;
+  --point-100: #fce8c5;
+  --point-50: #fdefd8;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #a1a1aa;
+  --text-muted: #a1a1aa;
+  --text-white: #f1f1f1;
+  --text-base: #f1f1f1;
+  --white: #f1f1f1;
+
+  --bg: #0b0f19;
+  --surface: #3730a3;
   --radius: 2rem;
+}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #e0e7ff;
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
+  --text-base: #18181b;
 }
 
 /* HTML 기본 스타일을 설정합니다. */
 @layer base {
   html {
     scroll-behavior: smooth;
-    background: rgb(var(--color-bg));
-    color: rgb(var(--color-text));
+    background: var(--bg);
+    color: var(--text-base);
   }
 
   body {
     min-height: 100vh;
-    background: rgb(var(--color-bg));
-    color: rgb(var(--color-text));
+    background: var(--bg);
+    color: var(--text-base);
     font-family:
       Inter,
       ui-sans-serif,
@@ -47,7 +81,7 @@
   }
 
   ::selection {
-    background: rgb(var(--color-primary) / 0.25);
+    background: rgba(99, 102, 241, 0.25);
   }
 }
 
@@ -58,17 +92,17 @@
   }
 
   .btn-primary {
-    background-color: rgb(var(--color-primary));
-    color: white;
+    background-color: var(--primary-500);
+    color: var(--text-white);
   }
 
   .btn-secondary {
-    background-color: rgb(var(--color-accent));
-    color: rgb(var(--color-bg));
+    background-color: var(--point-500);
+    color: var(--text-white);
   }
 
   .btn-ghost {
-    @apply bg-white/5 text-slate-100 hover:bg-white/10;
+    @apply bg-white/5 text-white hover:bg-white/10;
   }
 
   .btn-sm {
@@ -84,14 +118,26 @@
   }
 
   .input {
-    @apply w-full rounded-[var(--radius)] border border-white/10 bg-slate-950/80 px-4 py-3 text-base text-slate-100 outline-none ring-2 ring-transparent transition duration-200 focus:border-slate-300 focus:ring-slate-600/40;
+    @apply w-full rounded-[var(--radius)] border border-white/10 bg-primary-900/80 px-4 py-3 text-base text-white outline-none ring-2 ring-transparent transition duration-200 focus:border-primary-300 focus:ring-primary-300/40;
+  }
+
+  .select {
+    @apply w-full rounded-[var(--radius)] border border-white/10 bg-primary-900/80 px-4 py-3 text-base text-white outline-none ring-2 ring-transparent transition duration-200 focus:border-primary-300 focus:ring-primary-300/40;
+  }
+
+  [data-theme="light"] .select {
+    @apply bg-white text-body border-secondary;
+  }
+
+  [data-theme="light"] .input {
+    @apply bg-white text-body border-secondary;
   }
 
   .card {
-    @apply rounded-[var(--radius)] border border-white/10 bg-slate-950/90 p-8 shadow-2xl shadow-slate-950/40;
+    @apply rounded-[var(--radius)] border border-white/10 bg-primary-900/90 p-8 shadow-2xl shadow-primary-900/15;
   }
 
   .section-card {
-    @apply rounded-[var(--radius)] border border-white/10 bg-slate-950/85 p-8 shadow-xl shadow-slate-950/20;
+    @apply rounded-[var(--radius)] border border-white/10 bg-primary-900/85 p-8 shadow-xl shadow-primary-900/12;
   }
 }

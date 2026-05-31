@@ -48,18 +48,18 @@ export default function Projects() {
         <meta name="description" content="프로젝트 대시보드 화면" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <main className="min-h-screen bg-bg text-text">
+      <main className="min-h-screen bg-primary-900 text-white">
         {/* 페이지 상단 설명 영역 */}
         <Container className="py-10">
-          <div className="mb-10 flex flex-col gap-5 rounded-[32px] border border-white/10 bg-slate-950/90 p-8 shadow-soft md:flex-row md:items-center md:justify-between">
+          <div className="mb-10 flex flex-col gap-5 rounded-[32px] border border-white/10 bg-primary-900/90 p-8 shadow-soft md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.35em] text-primary/80">
+              <p className="text-b2_body_m font-semibold uppercase tracking-[0.35em] text-primary/80">
                 NoCode Tool
               </p>
-              <h1 className="mt-4 text-4xl font-semibold text-white sm:text-5xl">
+              <h1 className="mt-4 text-h1 font-semibold text-white">
                 프로젝트 목록
               </h1>
-              <p className="mt-4 max-w-2xl text-slate-400">
+              <p className="mt-4 max-w-2xl text-b1_body_r text-muted">
                 피그마 스타일의 카드 형태로 구성된 프로젝트 항목을 한눈에 확인할
                 수 있습니다.
               </p>
