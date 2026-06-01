@@ -40,6 +40,10 @@ module.exports = {
       boxShadow: {
         soft: "0 25px 80px rgba(49, 46, 129, 0.25)",
       },
+      textShadow: {
+        basic: "var(--text-shadow)",
+        soft: "var(--text-shadow-soft)",
+      },
       borderRadius: {
         xl: "1.75rem",
         "2xl": "2rem",
@@ -68,6 +72,8 @@ module.exports = {
         regular: "400",
         medium: "500",
         semibold: "600",
+        bold: "700",
+        exbold: "800",
       },
     },
   },

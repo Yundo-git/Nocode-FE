@@ -35,6 +35,8 @@
   --bg: #0b0f19;
   --surface: #3730a3;
   --radius: 2rem;
+  --text-shadow: 0 12px 28px rgba(255, 0, 0, 0.28);
+  --text-shadow-soft: 0 18px 40px rgba(49, 46, 129, 0.22);
 }
 
 [data-theme="light"] {
@@ -44,6 +46,8 @@
   --text-secondary: #52525b;
   --text-muted: #a1a1aa;
   --text-base: #18181b;
+  --text-shadow: 0 12px 28px rgba(49, 46, 129, 0.1);
+  --text-shadow-soft: 0 18px 40px rgba(49, 46, 129, 0.08);
 }
 
 /* HTML 기본 스타일을 설정합니다. */
@@ -189,5 +193,13 @@
 
   .bg-surface {
     background-color: var(--surface);
+  }
+
+  .text-shadow {
+    text-shadow: 0 12px 28px rgba(49, 46, 129, 0.25);
+  }
+
+  .text-shadow-soft {
+    text-shadow: 0 10px 32px rgba(49, 46, 129, 0.22);
   }
 }
