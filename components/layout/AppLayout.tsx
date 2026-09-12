@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, type ReactNode } from "react";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar } from "@/components/layout/sidebar/Sidebar";
 
 // 앱 전체 골격입니다. 왼쪽에 사이드바, 오른쪽에 본문을 배치합니다.
 // grid 의 minmax(0, 1fr) 덕분에 본문에 넓은 내용이 들어와도
