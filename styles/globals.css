@@ -19,18 +19,6 @@
   --primary-100: #ece0fd;
   --primary-50: #f6f1fe;
 
-  /* 보조 강조색입니다. */
-  --point-900: #5c3206;
-  --point-800: #7a4406;
-  --point-700: #8a4a06;
-  --point-600: #b06209;
-  --point-500: #d98324;
-  --point-400: #eda54f;
-  --point-300: #f4c489;
-  --point-200: #f9dfba;
-  --point-100: #fcecd6;
-  --point-50: #fdf6ec;
-
   --text-primary: #1d1533;
   --text-secondary: #4c4168;
   --text-muted: #6b6088;
@@ -39,10 +27,8 @@
 
   /* 화면 바탕과 패널 */
   --bg: #f8f6fc;
-  --surface: #f2eefa;
   --panel: #ffffff;
   --panel-2: #f3eefb;
-  --row-zebra: #fbf9fe;
   --row-hover: #f0e9fb;
   --line: #e6dff2;
   --line-strong: #d2c6e6;
@@ -60,7 +46,6 @@
   --radius-sm: 3px;
   --radius-md: 5px;
   --radius-lg: 6px;
-  --radius: 6px;
 }
 
 [data-theme="dark"] {
@@ -77,10 +62,8 @@
   --text-base: #ece7f6;
 
   --bg: #14101f;
-  --surface: #1c1730;
   --panel: #1c1730;
   --panel-2: #171226;
-  --row-zebra: #201a33;
   --row-hover: #241d3a;
   --line: #322a4a;
   --line-strong: #483c66;
@@ -152,11 +135,6 @@
     background-color: var(--primary-700);
   }
 
-  .btn-secondary {
-    background-color: var(--point-700);
-    color: #ffffff;
-  }
-
   .btn-ghost {
     color: var(--text-secondary);
     background-color: var(--panel);
@@ -176,10 +154,6 @@
     @apply px-3.5 py-2 text-bt-text-large;
   }
 
-  .btn-lg {
-    @apply px-5 py-2.5 text-s1;
-  }
-
   /* 입력과 선택 상자 */
   .input,
   .select {
@@ -194,6 +168,59 @@
   .select:focus {
     border-color: var(--primary-500);
     box-shadow: 0 0 0 3px var(--primary-100);
+  }
+
+  /* 정보 밀도를 높인 표
+     - table-layout: fixed      : 쪽을 넘겨도 칸 너비가 흔들리지 않습니다.
+     - border-collapse: separate: 머리글을 고정해도 아래 구분선이 남습니다. */
+  .data-table {
+    @apply w-full text-left;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-muted);
+    background-color: var(--panel-2);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .data-table tbody td {
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .data-table tbody tr:hover td {
+    background-color: var(--row-hover);
+  }
+
+  /* 숫자 칸은 오른쪽 정렬 + 자릿수 고정 */
+  .data-table .num,
+  .data-table th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 가운데 정렬 칸 (체크박스, 토글 등) */
+  .data-table .center,
+  .data-table th.center {
+    text-align: center;
+    overflow: visible;
   }
 
   /* 기본 면 */
