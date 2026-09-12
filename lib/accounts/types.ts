@@ -51,6 +51,24 @@ export type ChangePasswordInput = {
   readonly newPassword: string;
 };
 
+// 관리자가 계정을 만들거나 고칠 때 넣는 값입니다.
+//
+// 본인이 고치는 MyProfileInput 과 달리 아이디·소속 파트·권한까지 들어 있습니다.
+// 비밀번호는 없습니다. 아직 저장할 곳이 없습니다. (NOTES.md 4-8)
+export type AdminAccountInput = {
+  readonly loginId: string;
+  readonly name: string;
+  readonly email: string;
+  readonly phone: string;
+  readonly divisionId: BusinessDivisionId;
+  readonly role: AccountRole;
+};
+
+// 계정을 만들거나 고친 결과입니다.
+export type AccountWriteResult =
+  | { readonly ok: true; readonly account: Account }
+  | { readonly ok: false; readonly reason: "duplicate-login-id" | "not-found" };
+
 // 검색 조건입니다. 빈 문자열은 "조건 없음"으로 봅니다.
 export type AccountFilterValues = {
   readonly keyword: string;

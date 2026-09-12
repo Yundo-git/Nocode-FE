@@ -19,7 +19,7 @@ function buildHeaders(hasBody: boolean): HeadersInit {
 }
 
 async function request<T>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
 ): Promise<ApiResult<T>> {
@@ -30,8 +30,9 @@ async function request<T>(
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 
-    // 본문이 없거나 JSON 이 아닐 수도 있어 감싸 둡니다.
-    const data: unknown = await res.json().catch(() => null);
+    // 204(본문 없음)처럼 JSON 이 아닐 수도 있어 감싸 둡니다.
+    const data: unknown =
+      res.status === 204 ? null : await res.json().catch(() => null);
 
     if (!res.ok) {
       const message =
@@ -52,5 +53,7 @@ async function request<T>(
 export const api = {
   get: <T,>(path: string) => request<T>("GET", path),
   post: <T,>(path: string, body: unknown) => request<T>("POST", path, body),
+  put: <T,>(path: string, body: unknown) => request<T>("PUT", path, body),
   patch: <T,>(path: string, body: unknown) => request<T>("PATCH", path, body),
+  remove: <T,>(path: string) => request<T>("DELETE", path),
 };

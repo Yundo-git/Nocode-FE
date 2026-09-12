@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api/client";
-import type { Account, MyProfileInput } from "@/lib/accounts/types";
+import type {
+  Account,
+  AccountWriteResult,
+  AdminAccountInput,
+  MyProfileInput,
+} from "@/lib/accounts/types";
 import { useAuth } from "@/lib/auth";
 
 export type LoadStatus = "loading" | "ready" | "error";
@@ -73,7 +78,65 @@ export function useAccounts() {
     [accounts],
   );
 
-  return { accounts, status, toggleEnabled };
+  // 관리자가 계정을 새로 만듭니다.
+  const createAccount = useCallback(
+    async (input: AdminAccountInput): Promise<AccountWriteResult> => {
+      const res = await api.post<Account>("/accounts", input);
+
+      if (!res.ok) {
+        // 409 는 "이미 쓰는 아이디" 라는 뜻입니다.
+        return {
+          ok: false,
+          reason: res.status === 409 ? "duplicate-login-id" : "not-found",
+        };
+      }
+
+      setAccounts((prev) => [res.data, ...prev]);
+      return { ok: true, account: res.data };
+    },
+    [],
+  );
+
+  // 관리자가 계정을 고칩니다.
+  const updateAccount = useCallback(
+    async (id: string, input: AdminAccountInput): Promise<AccountWriteResult> => {
+      const res = await api.put<Account>(`/accounts/${id}`, input);
+
+      if (!res.ok) {
+        return {
+          ok: false,
+          reason: res.status === 409 ? "duplicate-login-id" : "not-found",
+        };
+      }
+
+      setAccounts((prev) =>
+        prev.map((account) => (account.id === id ? res.data : account)),
+      );
+      return { ok: true, account: res.data };
+    },
+    [],
+  );
+
+  // 계정을 지웁니다. 성공하면 빈 문자열, 실패하면 이유를 돌려줍니다.
+  const removeAccount = useCallback(async (id: string): Promise<string> => {
+    const res = await api.remove<null>(`/accounts/${id}`);
+
+    if (!res.ok) {
+      return res.message;
+    }
+
+    setAccounts((prev) => prev.filter((account) => account.id !== id));
+    return "";
+  }, []);
+
+  return {
+    accounts,
+    status,
+    toggleEnabled,
+    createAccount,
+    updateAccount,
+    removeAccount,
+  };
 }
 
 // 로그인한 본인의 계정입니다.

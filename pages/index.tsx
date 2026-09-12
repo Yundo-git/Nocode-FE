@@ -4,19 +4,27 @@ import {
   DashboardGrid,
   DRAG_HANDLE_CLASS,
 } from "@/components/dashboard/DashboardGrid";
+import { ServerClock } from "@/components/dashboard/ServerClock";
 import { Panel } from "@/components/ui/Panel";
 
 // 상자를 옮긴 자리를 저장해 두는 칸 이름입니다.
-const LAYOUT_STORAGE_KEY = "nocode-dashboard-layout";
+//
+// 뒤의 숫자는 기본 배치를 바꿀 때마다 올립니다.
+// 한 번이라도 대시보드를 연 브라우저에는 그때의 배치가 저장돼 있어서,
+// 키를 그대로 두면 새 기본값(7:3)이 보이지 않고 예전 배치가 계속 나옵니다.
+// (배치에 영향을 주는 값을 바꿀 때마다 뒤 숫자를 올리세요)
+const LAYOUT_STORAGE_KEY = "nocode-dashboard-layout-v5";
 
 // 처음 배치입니다. i 값은 아래 JSX 의 key 와 반드시 같아야 합니다.
 //
-// 넓은 화면은 14칸을 씁니다. 상단을 8 : 6 으로 나누면 정확히 4 : 3 입니다.
+// 가로: 20칸을 씁니다. 상단을 16 : 4 로 나누면 정확히 8 : 2 입니다.
+// 세로: 위 4행 + 아래 6행 = 10행. 서버상태줄 : 실시간로그줄 이 4 : 6 입니다.
+// (20칸을 쓰는 이유는 DashboardGrid.tsx 의 COLS 주석 참고)
 // 좁은 화면(768px 미만)은 1칸이라 위에서 아래로 하나씩 쌓입니다.
 const WIDE_LAYOUT = [
-  { i: "status", x: 0, y: 0, w: 8, h: 6 },
-  { i: "uptime", x: 8, y: 0, w: 6, h: 6 },
-  { i: "incidents", x: 0, y: 6, w: 14, h: 6 },
+  { i: "status", x: 0, y: 0, w: 16, h: 4 },
+  { i: "uptime", x: 16, y: 0, w: 4, h: 4 },
+  { i: "incidents", x: 0, y: 4, w: 20, h: 6 },
 ];
 
 const NARROW_LAYOUT = [
@@ -51,6 +59,9 @@ export default function HomePage() {
           <DashboardGrid
             storageKey={LAYOUT_STORAGE_KEY}
             defaultLayouts={DEFAULT_LAYOUTS}
+            // 위 4 + 아래 6 = 10행이 화면 높이에 딱 맞습니다.
+            // WIDE_LAYOUT 의 h 를 바꾸면 이 값도 함께 바꿔야 합니다.
+            fitRows={10}
           >
             {/* 각 자식의 key 가 위 배치의 i 와 짝이 맞아야 합니다.
                 Panel 을 바로 두지 않고 div 로 한 번 감싸는 이유는,
@@ -79,7 +90,7 @@ export default function HomePage() {
                 bodyClassName="overflow-auto"
                 title="현재시간"
               >
-                <PlaceholderBody />
+                <ServerClock />
               </Panel>
             </div>
 

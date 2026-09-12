@@ -51,6 +51,7 @@ module.exports = {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
       },
       fontSize: {
+        h3: ["32px", { lineHeight: "38px" }],
         h4: ["28px", { lineHeight: "34px" }],
         h5: ["24px", { lineHeight: "28px" }],
         s1: ["18px", { lineHeight: "28px" }],

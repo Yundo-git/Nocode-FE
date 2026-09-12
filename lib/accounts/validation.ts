@@ -1,4 +1,5 @@
-import type { MyProfileInput } from "@/lib/accounts/types";
+import { ACCOUNT_ROLES, type AccountRole, type AdminAccountInput, type MyProfileInput } from "@/lib/accounts/types";
+import { BUSINESS_DIVISIONS, type BusinessDivisionId } from "@/lib/businessDivisions";
 
 // 아주 엄격한 검사는 아닙니다. 오타를 걸러 내는 정도입니다.
 // (실제 확인은 메일 발송이나 백엔드가 합니다)
@@ -43,4 +44,65 @@ export function validatePasswordChange(
   }
 
   return "";
+}
+
+// 로그인 아이디입니다. 주소나 파일 이름에 들어갈 수 있어 기호를 제한합니다.
+export function isValidLoginId(value: string): boolean {
+  return /^[A-Za-z0-9._-]{3,32}$/.test(value);
+}
+
+// 관리자가 넣은 값을 검사합니다. 문제가 없으면 빈 문자열입니다.
+export function validateAdminAccount(input: {
+  loginId: string;
+  name: string;
+  email: string;
+  phone: string;
+  divisionId: string;
+  role: string;
+}): string {
+  if (!input.loginId.trim()) return "아이디를 입력해주세요.";
+  if (!isValidLoginId(input.loginId.trim())) {
+    return "아이디는 영문·숫자와 . _ - 로 3~32자여야 합니다.";
+  }
+  if (!input.divisionId) return "업무파트를 선택해주세요.";
+  if (!BUSINESS_DIVISIONS.some((d) => d.id === input.divisionId)) {
+    return "업무파트를 선택해주세요.";
+  }
+  if (!input.role) return "권한을 선택해주세요.";
+  if (!ACCOUNT_ROLES.includes(input.role as AccountRole)) {
+    return "권한을 선택해주세요.";
+  }
+
+  // 이름·이메일·번호 규칙은 본인 수정과 같습니다.
+  return validateMyProfile({
+    name: input.name,
+    email: input.email,
+    phone: input.phone,
+  });
+}
+
+// API 로 들어온 값의 모양을 확인하고 다듬습니다.
+export function parseAdminAccount(body: unknown): AdminAccountInput | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const raw = body as Record<string, unknown>;
+  const text = (key: string) =>
+    typeof raw[key] === "string" ? (raw[key] as string).trim() : "";
+
+  const input = {
+    loginId: text("loginId"),
+    name: text("name"),
+    email: text("email"),
+    phone: text("phone"),
+    divisionId: text("divisionId"),
+    role: text("role"),
+  };
+
+  if (validateAdminAccount(input)) return null;
+
+  return {
+    ...input,
+    divisionId: input.divisionId as BusinessDivisionId,
+    role: input.role as AccountRole,
+  };
 }
