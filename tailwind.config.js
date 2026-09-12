@@ -3,6 +3,7 @@ module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
+    "./lib/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -31,6 +32,18 @@ module.exports = {
           100: "var(--point-100)",
           50: "var(--point-50)",
         },
+        // 대시보드 패널과 구분선 색상입니다.
+        panel: "var(--panel)",
+        "panel-2": "var(--panel-2)",
+        "row-hover": "var(--row-hover)",
+        "row-zebra": "var(--row-zebra)",
+        line: "var(--line)",
+        "line-strong": "var(--line-strong)",
+        // 서버 상태 색상입니다.
+        up: { 500: "var(--up-500)", bg: "var(--up-bg)" },
+        warn: { 500: "var(--warn-500)", bg: "var(--warn-bg)" },
+        down: { 500: "var(--down-500)", bg: "var(--down-bg)" },
+        unknown: { 500: "var(--unknown-500)", bg: "var(--unknown-bg)" },
         body: "var(--text-primary)",
         secondary: "var(--text-secondary)",
         muted: "var(--text-muted)",
@@ -40,16 +53,21 @@ module.exports = {
       boxShadow: {
         soft: "0 25px 80px rgba(49, 46, 129, 0.25)",
       },
-      textShadow: {
-        basic: "var(--text-shadow)",
-        soft: "var(--text-shadow-soft)",
-      },
       borderRadius: {
         xl: "1.75rem",
         "2xl": "2rem",
       },
       fontFamily: {
-        sans: ["Inter"],
+        sans: [
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "sans-serif",
+        ],
+        // IP, 응답 시간처럼 자릿수를 맞춰 봐야 하는 값에 사용합니다.
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
       },
       fontSize: {
         h1: ["48px", { lineHeight: "58px" }],
@@ -67,6 +85,8 @@ module.exports = {
         "bt-text-large": ["16px", { lineHeight: "20px" }],
         "bt-text-m": ["14px", { lineHeight: "16px" }],
         "bt-text-s": ["12px", { lineHeight: "16px" }],
+        // 표 머리글처럼 작은 라벨에 사용합니다.
+        "d-label": ["11px", { lineHeight: "14px", letterSpacing: "0.04em" }],
       },
       fontWeight: {
         regular: "400",

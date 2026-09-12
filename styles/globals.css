@@ -2,58 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 사이트에서 쓰는 기본 색상과 모양 값을 정의합니다. */
+/* 색상 값입니다.
+   기본값은 밝은 블루-화이트 테마이고, [data-theme="dark"] 에서 어두운 테마로 바뀝니다. */
 :root {
-  --primary-900: #312e81;
-  --primary-800: #3730a3;
-  --primary-700: #4338ca;
-  --primary-600: #4f46e5;
-  --primary-500: #6366f1;
-  --primary-400: #818cf8;
-  --primary-300: #a5b4fc;
-  --primary-200: #c7d2fe;
-  --primary-100: #e0e7ff;
-  --primary-50: #eef2ff;
+  color-scheme: light;
 
-  --point-900: #895906;
-  --point-800: #b07207;
-  --point-700: #d78c09;
-  --point-600: #f59e0b;
-  --point-500: #f7b23b;
-  --point-400: #f8c162;
-  --point-300: #f9d18a;
-  --point-200: #fbe0b1;
-  --point-100: #fce8c5;
-  --point-50: #fdefd8;
+  /* 파란색 계열 강조색입니다. */
+  --primary-900: #0c2d57;
+  --primary-800: #10386b;
+  --primary-700: #154a8a;
+  --primary-600: #1a5fb4;
+  --primary-500: #2176d9;
+  --primary-400: #4f9aeb;
+  --primary-300: #8cc0f5;
+  --primary-200: #bcdcfb;
+  --primary-100: #dcebfd;
+  --primary-50: #eff6fe;
 
-  --text-primary: #f8fafc;
-  --text-secondary: #a1a1aa;
-  --text-muted: #a1a1aa;
-  --text-white: #f1f1f1;
-  --text-base: #f1f1f1;
+  --point-900: #5c3206;
+  --point-800: #7a4406;
+  --point-700: #8a4a06;
+  --point-600: #b06209;
+  --point-500: #d98324;
+  --point-400: #eda54f;
+  --point-300: #f4c489;
+  --point-200: #f9dfba;
+  --point-100: #fcecd6;
+  --point-50: #fdf6ec;
 
-  --bg: #0b0f19;
-  --surface: #3730a3;
-  --radius: 2rem;
-  --text-shadow: 0 12px 28px rgba(255, 0, 0, 0.28);
-  --text-shadow-soft: 0 18px 40px rgba(49, 46, 129, 0.22);
+  --text-primary: #0f2440;
+  --text-secondary: #3d5876;
+  --text-muted: #566d88;
+  --text-white: #ffffff;
+  --text-base: #0f2440;
+
+  /* 화면 바탕과 패널 */
+  --bg: #f4f7fb;
+  --surface: #eef3f9;
+  --panel: #ffffff;
+  --panel-2: #eef3f9;
+  --row-zebra: #fafcfe;
+  --row-hover: #e8f0fa;
+  --line: #dde6f0;
+  --line-strong: #c3d2e3;
+
+  /* 서버 상태 색상 (글자색과 배경색을 따로 둡니다) */
+  --up-500: #0b6b36;
+  --up-bg: #e4f4ea;
+  --warn-500: #8a4a06;
+  --warn-bg: #fdf0dd;
+  --down-500: #b02020;
+  --down-bg: #fce9e9;
+  --unknown-500: #4d5f74;
+  --unknown-bg: #eceff4;
+
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+  --radius: 6px;
 }
 
-[data-theme="light"] {
-  --bg: #f8fafc;
-  --surface: #e0e7ff;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
-  --text-base: #18181b;
-  --text-shadow: 0 12px 28px rgba(49, 46, 129, 0.1);
-  --text-shadow-soft: 0 18px 40px rgba(49, 46, 129, 0.08);
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --primary-600: #2176d9;
+  --primary-500: #3d8ce8;
+  --primary-400: #5aa7f0;
+
+  --text-primary: #e6edf6;
+  --text-secondary: #aebdd0;
+  --text-muted: #8d9fb5;
+  --text-white: #ffffff;
+  --text-base: #e6edf6;
+
+  --bg: #0d1726;
+  --surface: #131f33;
+  --panel: #131f33;
+  --panel-2: #0f1a2b;
+  --row-zebra: #16233a;
+  --row-hover: #18263d;
+  --line: #24354f;
+  --line-strong: #35496a;
+
+  --up-500: #45e08a;
+  --up-bg: #10301f;
+  --warn-500: #ffb020;
+  --warn-bg: #33250c;
+  --down-500: #ff7b7b;
+  --down-bg: #3a1c1c;
+  --unknown-500: #9fb0c4;
+  --unknown-bg: #222e3f;
 }
 
-/* HTML 기본 스타일을 설정합니다. */
 @layer base {
   html {
-    scroll-behavior: smooth;
     background: var(--bg);
     color: var(--text-base);
   }
@@ -84,122 +126,230 @@
   }
 
   ::selection {
-    background: rgba(99, 102, 241, 0.25);
+    background: var(--primary-200);
+    color: var(--primary-900);
   }
 }
 
-/* 버튼, 입력, 카드처럼 자주 쓰는 컴포넌트 스타일을 정의합니다. */
 @layer components {
+  /* 버튼 */
   .btn {
-    @apply inline-flex items-center justify-center rounded-[var(--radius)] font-semibold shadow-sm transition duration-200 ease-out;
+    @apply inline-flex items-center justify-center gap-1.5 font-semibold transition duration-150 ease-out;
+    border-radius: var(--radius-md);
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-40;
   }
 
   .btn-primary {
-    background-color: var(--primary-500);
-    color: var(--text-white);
+    background-color: var(--primary-600);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-700);
   }
 
   .btn-secondary {
-    background-color: var(--point-500);
-    color: var(--text-white);
+    background-color: var(--point-700);
+    color: #ffffff;
   }
 
   .btn-ghost {
-    @apply text-white;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    background-color: var(--panel);
+    border: 1px solid var(--line-strong);
   }
 
-  .btn-ghost:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--row-hover);
+    color: var(--text-primary);
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-2.5 py-1 text-bt-text-m;
   }
 
   .btn-md {
-    @apply px-6 py-3 text-base;
+    @apply px-3.5 py-2 text-bt-text-large;
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg;
+    @apply px-5 py-2.5 text-s1;
   }
 
-  .input {
-    @apply w-full rounded-[var(--radius)] px-4 py-3 text-base text-white outline-none ring-2 ring-transparent transition duration-200;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(49, 46, 129, 0.8);
-  }
-
-  .input:focus {
-    border-color: #a5b4fc;
-    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.4);
-  }
-
+  /* 입력과 선택 상자 */
+  .input,
   .select {
-    @apply w-full rounded-[var(--radius)] px-4 py-3 text-base text-white outline-none ring-2 ring-transparent transition duration-200;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(49, 46, 129, 0.8);
+    @apply px-2.5 py-1.5 text-b2_body_r outline-none transition duration-150;
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    border: 1px solid var(--line-strong);
+    background-color: var(--panel);
   }
 
+  .input:focus,
   .select:focus {
-    border-color: #a5b4fc;
-    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.4);
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
   }
 
-  [data-theme="light"] .select {
-    @apply bg-white text-body border-secondary;
+  /* 대시보드의 기본 면 */
+  .panel {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    background-color: var(--panel);
   }
 
-  [data-theme="light"] .input {
-    @apply bg-white text-body border-secondary;
+  .panel-head {
+    @apply flex flex-wrap items-center justify-between gap-2 px-4 py-2.5;
+    border-bottom: 1px solid var(--line);
+    background-color: var(--panel-2);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
   }
 
-  .card {
-    @apply rounded-[var(--radius)] p-8;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(49, 46, 129, 0.9);
-    box-shadow: 0 25px 80px rgba(49, 46, 129, 0.15);
+  /* 요약 타일. 왼쪽 색 띠로 상태를 구분합니다. */
+  .stat-tile {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    background-color: var(--panel);
+    padding: 10px 12px 11px 14px;
   }
 
-  .section-card {
-    @apply rounded-[var(--radius)] p-8;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(49, 46, 129, 0.85);
-    box-shadow: 0 25px 60px rgba(49, 46, 129, 0.12);
+  .stat-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background-color: var(--tile-tone, var(--line-strong));
+  }
+
+  /* 가동률 막대 */
+  .meter {
+    display: flex;
+    height: 6px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 999px;
+    background-color: var(--panel-2);
+  }
+
+  .meter-up {
+    background-color: var(--up-500);
+  }
+
+  .meter-warning {
+    background-color: var(--warn-500);
+  }
+
+  .meter-down {
+    background-color: var(--down-500);
+  }
+
+  .meter-unknown {
+    background-color: var(--unknown-500);
+  }
+
+  /* 정보 밀도를 높인 표
+     - table-layout: fixed  : 쪽을 넘겨도 칸 너비가 흔들리지 않습니다.
+     - border-collapse: separate : 머리글을 고정해도 아래 구분선이 남습니다. */
+  .data-table {
+    @apply w-full text-left;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 7px 12px;
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--text-muted);
+    background-color: var(--panel-2);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .data-table tbody td {
+    padding: 6px 12px;
+    font-size: 13px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .data-table tbody tr:nth-child(even) td {
+    background-color: var(--row-zebra);
+  }
+
+  .data-table tbody tr:hover td {
+    background-color: var(--row-hover);
+  }
+
+  /* 숫자 칸은 오른쪽 정렬 + 고정폭 숫자 */
+  .data-table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table th.num {
+    text-align: right;
+  }
+
+  /* 상태 배지 */
+  .badge {
+    @apply inline-flex items-center gap-1.5 font-bold;
+    border-radius: var(--radius-sm);
+    padding: 1px 6px;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+  }
+
+  .badge-up {
+    color: var(--up-500);
+    background-color: var(--up-bg);
+  }
+
+  .badge-warning {
+    color: var(--warn-500);
+    background-color: var(--warn-bg);
+  }
+
+  .badge-down {
+    color: var(--down-500);
+    background-color: var(--down-bg);
+  }
+
+  .badge-unknown {
+    color: var(--unknown-500);
+    background-color: var(--unknown-bg);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: currentColor;
+    flex: none;
   }
 }
 
 @layer utilities {
-  .text-theme-primary {
-    color: var(--text-primary);
-  }
-
-  .text-theme-secondary {
-    color: var(--text-secondary);
-  }
-
-  .text-theme-muted {
-    color: var(--text-muted);
-  }
-
-  .text-theme-white {
-    color: var(--text-white);
-  }
-
   .bg-theme {
     background-color: var(--bg);
-  }
-
-  .bg-surface {
-    background-color: var(--surface);
-  }
-
-  .text-shadow {
-    text-shadow: 0 12px 28px rgba(49, 46, 129, 0.25);
-  }
-
-  .text-shadow-soft {
-    text-shadow: 0 10px 32px rgba(49, 46, 129, 0.22);
   }
 }
