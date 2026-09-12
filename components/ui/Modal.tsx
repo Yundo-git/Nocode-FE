@@ -6,6 +6,11 @@ type ModalProps = {
   /** 창 제목입니다. 화면에도 보이고 읽기 도구에도 이 이름으로 전달됩니다. */
   title: string;
   onClose: () => void;
+  /**
+   * 바깥(어두운 면)을 눌렀을 때 닫을지 정합니다. 기본값은 닫힘입니다.
+   * 입력 중인 내용이 사라지면 곤란한 창(등록 폼 등)은 false 로 둡니다.
+   */
+  closeOnBackdrop?: boolean;
   children?: ReactNode;
 };
 
@@ -14,7 +19,13 @@ type ModalProps = {
 // document.body 에 따로 그립니다(createPortal).
 // 사이드바(aside)에 overflow-hidden 이 걸려 있어서 그 안에 그리면 잘리기 때문입니다.
 // open 이 참이 되는 건 사람이 누른 뒤뿐이라 서버에서 그릴 때는 실행되지 않습니다.
-export function Modal({ open, title, onClose, children }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  onClose,
+  closeOnBackdrop = true,
+  children,
+}: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   // 서버에는 document 가 없어서 포털을 만들 수 없습니다.
@@ -57,14 +68,19 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* 뒤쪽을 덮는 어두운 면입니다. 누르면 닫힙니다. */}
-      <button
-        type="button"
-        aria-label="닫기"
-        tabIndex={-1}
-        onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/40"
-      />
+      {/* 뒤쪽을 덮는 어두운 면입니다.
+          closeOnBackdrop 이 참일 때만 눌러서 닫을 수 있습니다. */}
+      {closeOnBackdrop ? (
+        <button
+          type="button"
+          aria-label="닫기"
+          tabIndex={-1}
+          onClick={onClose}
+          className="absolute inset-0 cursor-default bg-black/40"
+        />
+      ) : (
+        <div aria-hidden className="absolute inset-0 bg-black/40" />
+      )}
 
       <div
         ref={panelRef}

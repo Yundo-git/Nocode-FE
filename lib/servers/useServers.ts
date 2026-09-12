@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { MOCK_SERVERS } from "@/lib/servers/mockServers";
 import type {
   AddServerResult,
   NewServerInput,
@@ -8,41 +7,20 @@ import type {
 
 export type LoadStatus = "loading" | "ready" | "error";
 
-// 서버 목록을 가져옵니다.
-// 지금은 임시 데이터를 그대로 돌려주고, 나중에 이 함수 안만
-// fetch("/api/servers") 같은 실제 호출로 바꾸면 화면 코드는 그대로 둬도 됩니다.
+// 목록은 서버의 data/servers.json 에 있습니다.
+// 브라우저 저장소가 아니라서 다른 PC 에서 접속해도 같은 목록이 보이고,
+// 로그아웃하거나 새로고침해도 남습니다.
+//
+// 나중에 실제 DB 를 붙일 때는 API 라우트(pages/api/servers) 안만 바꾸면 되고,
+// 아래 화면 코드는 그대로 둘 수 있습니다.
 export async function fetchServers(): Promise<readonly Server[]> {
-  return MOCK_SERVERS;
-}
+  const res = await fetch("/api/servers");
 
-// 등록 폼의 값을 목록에 넣을 한 줄로 바꿉니다.
-//
-// 지금은 브라우저에서 만들어 넣습니다. 백엔드가 붙으면 이 함수 대신
-// POST /api/servers 의 응답을 그대로 쓰면 됩니다.
-//
-// 사용여부를 켜고 등록하면 곧바로 핑을 쏜 것으로 칩니다.
-// 실제 핑은 백엔드가 하므로, 여기서는 UI 를 확인할 수 있게 결과를 흉내 냅니다.
-function createServer(input: NewServerInput): Server {
-  const now = new Date().toISOString();
-
-  if (!input.enabled) {
-    // 핑을 쏘지 않으므로 확인된 값이 없습니다.
-    return {
-      id: `srv-${Date.now().toString(36)}`,
-      ...input,
-      status: "down",
-      responseMs: null,
-      checkedAt: now,
-    };
+  if (!res.ok) {
+    throw new Error("서버 목록을 불러오지 못했습니다.");
   }
 
-  return {
-    id: `srv-${Date.now().toString(36)}`,
-    ...input,
-    status: "up",
-    responseMs: 10 + Math.floor(Math.random() * 40),
-    checkedAt: now,
-  };
+  return (await res.json()) as Server[];
 }
 
 // 화면에서 쓰는 서버 목록 상태입니다.
@@ -70,32 +48,80 @@ export function useServers() {
     };
   }, []);
 
-  // 서버를 한 대 등록합니다. 새로 등록한 줄이 맨 위에 오도록 앞에 붙입니다.
-  //
-  // 같은 IP 가 이미 있으면 넣지 않고 실패를 돌려줍니다.
-  // 백엔드가 붙으면 서버 쪽에서도 같은 검사를 해야 합니다.
-  // (두 사람이 동시에 같은 IP 를 등록하면 브라우저 검사만으로는 못 막습니다.)
+  // 서버를 한 대 등록합니다.
+  // 중복 IP 검사는 API 가 합니다. 브라우저에서만 검사하면
+  // 두 사람이 동시에 같은 IP 를 넣을 때 막지 못합니다.
   const addServer = useCallback(
-    (input: NewServerInput): AddServerResult => {
-      if (servers.some((server) => server.ip === input.ip)) {
-        return { ok: false, reason: "duplicate-ip" };
-      }
+    async (input: NewServerInput): Promise<AddServerResult> => {
+      try {
+        const res = await fetch("/api/servers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
 
-      setServers((prev) => [createServer(input), ...prev]);
-      return { ok: true };
+        if (res.status === 409) {
+          return { ok: false, reason: "duplicate-ip" };
+        }
+
+        if (!res.ok) {
+          return { ok: false, reason: "request-failed" };
+        }
+
+        const created = (await res.json()) as Server;
+        setServers((prev) => [created, ...prev]);
+        return { ok: true };
+      } catch {
+        return { ok: false, reason: "request-failed" };
+      }
     },
-    [servers],
+    [],
   );
 
   // 목록의 토글은 "핑을 쏠지" 를 정합니다.
-  // 지금은 화면에서만 바꾸고, 백엔드가 붙으면 여기서 저장 요청을 함께 보냅니다.
-  const toggleEnabled = useCallback((id: string) => {
-    setServers((prev) =>
-      prev.map((server) =>
-        server.id === id ? { ...server, enabled: !server.enabled } : server,
-      ),
-    );
-  }, []);
+  // 누른 즉시 화면을 바꿔 반응이 바로 보이게 하고,
+  // 저장에 실패하면 원래대로 되돌립니다.
+  const toggleEnabled = useCallback(
+    async (id: string) => {
+      const target = servers.find((server) => server.id === id);
+
+      if (target === undefined) {
+        return;
+      }
+
+      const next = !target.enabled;
+
+      setServers((prev) =>
+        prev.map((server) =>
+          server.id === id ? { ...server, enabled: next } : server,
+        ),
+      );
+
+      try {
+        const res = await fetch(`/api/servers/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: next }),
+        });
+
+        if (!res.ok) {
+          throw new Error("저장 실패");
+        }
+
+        const updated = (await res.json()) as Server;
+        setServers((prev) =>
+          prev.map((server) => (server.id === id ? updated : server)),
+        );
+      } catch {
+        setServers((prev) =>
+          prev.map((server) =>
+            server.id === id ? { ...server, enabled: !next } : server,
+          ),
+        );
+      }
+    },
+    [servers],
+  );
 
   return { servers, status, addServer, toggleEnabled };
 }

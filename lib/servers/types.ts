@@ -71,7 +71,7 @@ export type NewServerInput = {
 // 등록 결과입니다. 실패한 이유를 화면이 구분할 수 있게 담습니다.
 export type AddServerResult =
   | { readonly ok: true }
-  | { readonly ok: false; readonly reason: "duplicate-ip" };
+  | { readonly ok: false; readonly reason: "duplicate-ip" | "request-failed" };
 
 // 검색 조건입니다. 빈 문자열은 "조건 없음"으로 봅니다.
 export type ServerFilterValues = {

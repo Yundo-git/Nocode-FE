@@ -13,7 +13,9 @@ type ErrorModalProps = {
 // 사용자가 스스로 고칠 수 없는 경우가 있으므로 늘 문의 안내를 함께 보여 줍니다.
 export function ErrorModal({ open, title, message, onClose }: ErrorModalProps) {
   return (
-    <Modal open={open} title={title} onClose={onClose}>
+    // closeOnBackdrop={false}: 실패 내용을 못 보고 지나치지 않도록
+    // 바깥을 눌러서는 닫히지 않게 합니다. 확인 버튼이나 Esc 로 닫습니다.
+    <Modal open={open} title={title} onClose={onClose} closeOnBackdrop={false}>
       <div className="px-4 py-6">
         <p className="text-b1_body_m text-body">{message}</p>
         <p className="mt-2 text-b2_body_r text-muted">관리자에게 문의하세요.</p>

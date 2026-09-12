@@ -114,11 +114,15 @@ export default function ServersPage() {
   //
   // 같은 IP 가 이미 있으면 등록되지 않고 실패 창이 뜹니다.
   const handleRegister = useCallback(
-    (input: NewServerInput) => {
-      const result = addServer(input);
+    async (input: NewServerInput) => {
+      const result = await addServer(input);
 
       if (!result.ok) {
-        setRegisterError("이미 등록된 IP입니다.");
+        setRegisterError(
+          result.reason === "duplicate-ip"
+            ? "이미 등록된 IP입니다."
+            : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
+        );
         return;
       }
 

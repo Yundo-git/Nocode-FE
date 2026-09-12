@@ -10,6 +10,7 @@ import {
   type NewServerInput,
   type ServerType,
 } from "@/lib/servers/types";
+import { validateNewServerInput } from "@/lib/servers/validation";
 
 type ServerRegisterModalProps = {
   open: boolean;
@@ -38,35 +39,15 @@ const EMPTY_DRAFT: DraftValues = {
   enabled: true,
 };
 
-// 0~255 네 덩어리인지 봅니다. 255.255.255.999 같은 값을 걸러 냅니다.
-function isValidIpv4(value: string): boolean {
-  const parts = value.split(".");
-
-  if (parts.length !== 4) {
-    return false;
-  }
-
-  return parts.every((part) => {
-    if (!/^\d{1,3}$/.test(part)) return false;
-    const num = Number(part);
-    return num >= 0 && num <= 255;
-  });
-}
-
-// 비어 있거나 형식이 틀린 칸의 이름을 돌려줍니다.
-// 모두 통과하면 빈 문자열입니다.
+// 폼 검사입니다. 규칙은 API 와 공유합니다. (lib/servers/validation.ts)
 function validate(draft: DraftValues): string {
-  if (!draft.ip.trim()) return "IP를 입력해주세요.";
-  if (!isValidIpv4(draft.ip.trim())) return "IP 형식이 올바르지 않습니다. (예: 1.1.1.1)";
-  if (!draft.type) return "타입을 선택해주세요.";
-  if (!draft.divisionId) return "업무구분을 선택해주세요.";
-  if (!draft.nameEn.trim()) return "영문명을 입력해주세요.";
-  if (!/^[A-Za-z0-9._-]+$/.test(draft.nameEn.trim())) {
-    return "영문명은 영문·숫자와 . _ - 만 쓸 수 있습니다.";
-  }
-  if (!draft.nameKo.trim()) return "한글명을 입력해주세요.";
-
-  return "";
+  return validateNewServerInput({
+    ip: draft.ip,
+    type: draft.type,
+    divisionId: draft.divisionId,
+    nameEn: draft.nameEn,
+    nameKo: draft.nameKo,
+  });
 }
 
 // 서버를 한 대 등록하는 창입니다.
@@ -114,8 +95,10 @@ export function ServerRegisterModal({
     onClose();
   };
 
+  // closeOnBackdrop={false}: 입력하던 내용이 실수로 날아가지 않도록
+  // 바깥(어두운 면)을 눌러도 닫히지 않게 합니다.
   return (
-    <Modal open={open} title="서버 등록" onClose={onClose}>
+    <Modal open={open} title="서버 등록" onClose={onClose} closeOnBackdrop={false}>
       <form onSubmit={handleSubmit} className="px-4 py-4">
         <div className="space-y-3">
           <Row label="IP" htmlFor="new-ip">

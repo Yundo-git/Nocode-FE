@@ -1,8 +1,9 @@
 import type { Server } from "@/lib/servers/types";
 
-// UI 를 확인하려고 넣어 둔 임시 서버입니다.
-// 백엔드가 붙으면 이 파일은 지우고 useServers.ts 의 fetchServers 만 바꾸면 됩니다.
-export const MOCK_SERVERS: readonly Server[] = [
+// data/servers.json 이 아직 없을 때 처음 한 번 넣는 값입니다.
+// 파일이 만들어진 뒤에는 이 값을 고쳐도 반영되지 않습니다.
+// (다시 넣으려면 data/servers.json 을 지우면 됩니다.)
+export const SEED_SERVERS: readonly Server[] = [
   {
     id: "srv-test-001",
     nameEn: "test-server-01",
