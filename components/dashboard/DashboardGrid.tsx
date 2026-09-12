@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { TvIcon } from "@/components/ui/icons";
 import {
   ResponsiveGridLayout,
   useContainerWidth,
@@ -73,6 +74,13 @@ type DashboardGridProps = {
    * 기본 배치의 세로 칸 수 합을 넣습니다. (예: 위 6 + 아래 6 = 12)
    */
   fitRows: number;
+  /**
+   * TV모드 버튼을 눌렀을 때 할 일입니다.
+   * 넘기지 않으면 버튼이 눌리지 않는 상태로 보입니다. (아직 만들지 않음)
+   */
+  onTvMode?: () => void;
+  /** 도구 줄 왼쪽에 놓을 것입니다. (작업 모드 버튼 등) */
+  toolbarLeft?: ReactNode;
   /** 각 자식의 key 가 배치의 i 와 같아야 합니다. */
   children: ReactNode;
 };
@@ -117,6 +125,8 @@ export function DashboardGrid({
   storageKey,
   defaultLayouts,
   fitRows,
+  onTvMode,
+  toolbarLeft,
   children,
 }: DashboardGridProps) {
   // measureBeforeMount 를 켜면 폭을 잰 뒤에 그립니다.
@@ -181,12 +191,33 @@ export function DashboardGrid({
 
   return (
     <div ref={containerRef}>
-      <div className="mb-2 flex justify-end">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">{toolbarLeft}</div>
+
+        <div className="flex items-center gap-2">
         {/* 끌어서 옮기는 것만으로는 키보드로 배치를 바꿀 수 없습니다.
             최소한 처음 상태로 돌아올 방법은 있어야 합니다. */}
-        <button type="button" onClick={resetLayouts} className="btn btn-ghost btn-sm">
-          기본 배치로 되돌리기
-        </button>
+          <button
+            type="button"
+            onClick={resetLayouts}
+            className="btn btn-ghost btn-sm"
+          >
+            기본 배치로 되돌리기
+          </button>
+
+        {/* 관제실 화면용 버튼입니다.
+            대시보드 내용이 채워진 뒤에 만들 예정이라 아직 동작하지 않습니다. */}
+          <button
+            type="button"
+            onClick={onTvMode}
+            disabled={onTvMode === undefined}
+            title={onTvMode === undefined ? "준비 중입니다" : undefined}
+            className="btn btn-ghost btn-sm"
+          >
+            <TvIcon width={16} height={16} />
+            TV모드
+          </button>
+        </div>
       </div>
 
       <div ref={gridTopRef}>

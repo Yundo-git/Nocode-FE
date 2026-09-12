@@ -29,6 +29,18 @@ export function useServers() {
   const [servers, setServers] = useState<readonly Server[]>([]);
   const [status, setStatus] = useState<LoadStatus>("loading");
 
+  // 화면에서 "새로고침" 을 눌렀을 때 다시 받아 옵니다.
+  const reload = useCallback(async () => {
+    setStatus("loading");
+
+    try {
+      setServers(await fetchServers());
+      setStatus("ready");
+    } catch {
+      setStatus("error");
+    }
+  }, []);
+
   useEffect(() => {
     let alive = true;
 
@@ -108,5 +120,5 @@ export function useServers() {
     [servers],
   );
 
-  return { servers, status, addServer, toggleEnabled };
+  return { servers, status, reload, addServer, toggleEnabled };
 }

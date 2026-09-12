@@ -1,5 +1,10 @@
 import type { ComponentType, SVGProps } from "react";
-import { DashboardIcon, ServerIcon, UserIcon } from "@/components/ui/icons";
+import {
+  DashboardIcon,
+  LogIcon,
+  ServerIcon,
+  UserIcon,
+} from "@/components/ui/icons";
 
 // 사이드바 메뉴 한 칸의 생김새입니다.
 export type NavItem = {
@@ -18,6 +23,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/", label: "대시보드", Icon: DashboardIcon },
   { href: "/servers", label: "서버관리", Icon: ServerIcon },
   { href: "/accounts", label: "계정관리", Icon: UserIcon },
+  { href: "/logs", label: "로그조회", Icon: LogIcon },
 ] as const;
 
 // 지금 보고 있는 화면이 이 메뉴인지 판단합니다.

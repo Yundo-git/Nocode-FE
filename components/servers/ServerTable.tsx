@@ -97,10 +97,24 @@ export function ServerTable({
         </div>
 
         <div className="flex items-center gap-2">
-          <button type="button" className="btn btn-ghost btn-sm">
+          {/* 아직 만들지 않았습니다. 눌러도 아무 일 없는 것보다
+              눌리지 않는 편이 오해가 없습니다. */}
+          <button
+            type="button"
+            disabled
+            title="준비 중입니다"
+            className="btn btn-ghost btn-sm"
+          >
             엑셀 다운로드
           </button>
-          <button type="button" className="btn btn-ghost btn-sm">
+          {/* 아직 만들지 않았습니다. 눌러도 아무 일 없는 것보다
+              눌리지 않는 편이 오해가 없습니다. */}
+          <button
+            type="button"
+            disabled
+            title="준비 중입니다"
+            className="btn btn-ghost btn-sm"
+          >
             일괄등록
           </button>
           <button

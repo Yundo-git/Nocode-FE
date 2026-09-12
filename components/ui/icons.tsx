@@ -143,6 +143,49 @@ export function BellIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// TV(관제실 화면) 아이콘입니다.
+export function TvIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M2 21L17 21" {...stroke} />
+      <path d="M21 21L22 21" {...stroke} />
+      <path
+        d="M2 16.4V3.6C2 3.26863 2.26863 3 2.6 3H21.4C21.7314 3 22 3.26863 22 3.6V16.4C22 16.7314 21.7314 17 21.4 17H2.6C2.26863 17 2 16.7314 2 16.4Z"
+        {...plainStroke}
+      />
+    </IconBase>
+  );
+}
+
+// 로그조회 아이콘입니다.
+// public/icon 에 원본이 없어 여기서 직접 그렸습니다. (원본을 주시면 교체하면 됩니다)
+export function LogIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M5 3.6C5 3.26863 5.26863 3 5.6 3H15L19 7V20.4C19 20.7314 18.7314 21 18.4 21H5.6C5.26863 21 5 20.7314 5 20.4V3.6Z"
+        {...plainStroke}
+      />
+      <path d="M14.5 3V7.5H19" {...stroke} />
+      <path d="M8.5 12H15.5M8.5 16H13" {...stroke} />
+    </IconBase>
+  );
+}
+
+// 비상(경고) 아이콘입니다. 원본 svg 가 없어 직접 그렸습니다.
+export function AlertIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M10.29 3.86L1.82 18A2 2 0 0 0 3.53 21H20.47A2 2 0 0 0 22.18 18L13.71 3.86A2 2 0 0 0 10.29 3.86Z"
+        {...stroke}
+      />
+      <path d="M12 9V13" {...stroke} />
+      <path d="M12 17H12.01" {...stroke} />
+    </IconBase>
+  );
+}
+
 // 자물쇠만 원본 svg 가 없어 여기서 직접 그렸습니다. (로그인 화면 비밀번호 칸)
 export function LockIcon(props: SVGProps<SVGSVGElement>) {
   return (

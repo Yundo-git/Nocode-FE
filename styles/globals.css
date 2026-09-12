@@ -262,3 +262,28 @@
   opacity: 0.25;
   border-radius: var(--radius-lg);
 }
+
+/* 장애 알림의 느린 깜빡임입니다.
+   Tailwind 기본 animate-pulse 는 주기가 2초지만 투명도가 옅게만 변해
+   멀리서 잘 안 보입니다. 1.5초 주기로 더 또렷하게 바꿉니다.
+   초당 3회 이상 깜빡이면 광과민성 발작 위험이 있어 느리게 둡니다. */
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 1.5s ease-in-out infinite;
+}
+
+/* 화면 움직임을 줄이도록 설정한 사람에게는 깜빡이지 않습니다. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-slow {
+    animation: none;
+  }
+}

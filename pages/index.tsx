@@ -4,8 +4,14 @@ import {
   DashboardGrid,
   DRAG_HANDLE_CLASS,
 } from "@/components/dashboard/DashboardGrid";
-import { ServerClock } from "@/components/dashboard/ServerClock";
+import { ClockOrAlert } from "@/components/dashboard/ClockOrAlert";
+import { RecentLogs } from "@/components/dashboard/RecentLogs";
+import { MaintenanceToggle } from "@/components/dashboard/MaintenanceToggle";
+import { ServerStatusPanel } from "@/components/dashboard/ServerStatusPanel";
 import { Panel } from "@/components/ui/Panel";
+import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
+import { useNow } from "@/lib/useNow";
+import { useSettings } from "@/lib/settings/useSettings";
 
 // 상자를 옮긴 자리를 저장해 두는 칸 이름입니다.
 //
@@ -46,6 +52,12 @@ const DEFAULT_LAYOUTS: ResponsiveLayouts = {
 const HEADER_CLASS = `${DRAG_HANDLE_CLASS} cursor-move select-none`;
 
 export default function HomePage() {
+  const { summary, status, reload } = useDashboardSummary();
+  const { settings } = useSettings();
+  // 지속 시간이 매초 늘어나 보이도록 지금 시각을 여기서 한 번만 셉니다.
+  // (각 줄이 따로 타이머를 돌리면 초가 제각각으로 넘어갑니다)
+  const now = useNow();
+
   return (
     <>
       <Head>
@@ -62,6 +74,7 @@ export default function HomePage() {
             // 위 4 + 아래 6 = 10행이 화면 높이에 딱 맞습니다.
             // WIDE_LAYOUT 의 h 를 바꾸면 이 값도 함께 바꿔야 합니다.
             fitRows={10}
+            toolbarLeft={<MaintenanceToggle />}
           >
             {/* 각 자식의 key 가 위 배치의 i 와 짝이 맞아야 합니다.
                 Panel 을 바로 두지 않고 div 로 한 번 감싸는 이유는,
@@ -74,12 +87,21 @@ export default function HomePage() {
                 title="서버 상태"
                 description="1분갱신"
                 actions={
-                  <button type="button" className="btn btn-ghost btn-sm">
+                  <button
+                    type="button"
+                    onClick={() => void reload()}
+                    disabled={status === "loading"}
+                    className="btn btn-ghost btn-sm"
+                  >
                     새로고침
                   </button>
                 }
               >
-                <PlaceholderBody />
+                <ServerStatusPanel
+                  summary={summary}
+                  loading={status === "loading"}
+                  now={now}
+                />
               </Panel>
             </div>
 
@@ -90,7 +112,11 @@ export default function HomePage() {
                 bodyClassName="overflow-auto"
                 title="현재시간"
               >
-                <ServerClock />
+                <ClockOrAlert
+                  problems={summary.problems}
+                  muted={settings.maintenanceMode}
+                  now={now}
+                />
               </Panel>
             </div>
 
@@ -106,21 +132,12 @@ export default function HomePage() {
                   </span>
                 }
               >
-                <PlaceholderBody />
+                <RecentLogs />
               </Panel>
             </div>
           </DashboardGrid>
         </div>
       </div>
     </>
-  );
-}
-
-// 아직 데이터가 없어서 자리만 채워 두는 부분입니다.
-function PlaceholderBody() {
-  return (
-    <div className="flex h-full items-center justify-center text-b2_body_r text-muted">
-      연결된 데이터가 없습니다.
-    </div>
   );
 }
