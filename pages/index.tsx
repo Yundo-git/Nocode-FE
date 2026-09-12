@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Home</title>
+        <title>PingCheck</title>
       </Head>
 
       <div className="px-6 py-4" />
