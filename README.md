@@ -31,7 +31,8 @@ pages/
   _document.tsx           문서 기본 뼈대 + 테마 선적용 스크립트
   index.tsx               대시보드
   servers.tsx             서버관리
-  accounts.tsx            계정관리
+  accounts.tsx            계정관리 (전체 계정)
+  my-account.tsx          내 계정 (본인 계정)
   login.tsx               로그인 (사이드바 없이 화면 전체를 씁니다)
 
 components/
@@ -46,6 +47,8 @@ components/
       SidebarFooter.tsx   아이디 + 로그아웃 + 화면 모드
       navItems.ts         메뉴 항목 데이터 (메뉴 추가는 여기만 고치면 됩니다)
   ui/
+    Panel.tsx             대시보드 상자 (제목/설명/버튼/바닥글 선택)
+    Modal.tsx             화면 가운데 뜨는 창
     ColorMode.tsx         화이트/블랙 모드 선택 상자
     icons.tsx             아이콘 (아래 "아이콘" 항목 참고)
 

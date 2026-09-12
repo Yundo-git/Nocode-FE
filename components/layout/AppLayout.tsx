@@ -19,8 +19,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div
         className={`bg-theme grid h-[100dvh] grid-cols-1 transition-[grid-template-columns] duration-200 ease-out ${
           sidebarOpen
-            ? "md:grid-cols-[12rem_minmax(0,1fr)]"
-            : "md:grid-cols-[3rem_minmax(0,1fr)]"
+            ? "md:grid-cols-[16rem_minmax(0,1fr)]"
+            : "md:grid-cols-[4rem_minmax(0,1fr)]"
         }`}
       >
         <Sidebar

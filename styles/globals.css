@@ -209,3 +209,23 @@
     background-color: var(--bg);
   }
 }
+
+/* react-grid-layout 의 크기 조절 손잡이입니다.
+   원본 CSS 에 색이 #0006(검정)으로 박혀 있어 블랙 모드에서 보이지 않습니다.
+   _app.tsx 에서 그리드 CSS 를 먼저, 이 파일을 나중에 불러오므로 여기 규칙이 이깁니다. */
+.react-resizable-handle::after {
+  border-right-color: var(--text-muted);
+  border-bottom-color: var(--text-muted);
+}
+
+/* 끌고 있는 상자를 다른 상자 위로 띄웁니다. */
+.react-grid-item.react-draggable-dragging {
+  z-index: 3;
+}
+
+/* 놓일 자리를 미리 보여 주는 회색 칸입니다. 강조색으로 바꿉니다. */
+.react-grid-item.react-grid-placeholder {
+  background: var(--primary-400);
+  opacity: 0.25;
+  border-radius: var(--radius-lg);
+}
