@@ -11,7 +11,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="bg-theme grid h-[100dvh] grid-cols-1 md:grid-cols-[16rem_minmax(0,1fr)]">
+      <div className="bg-theme grid h-[100dvh] grid-cols-1 md:grid-cols-[12rem_minmax(0,1fr)]">
         <Sidebar />
         {/* 본문만 세로로 스크롤됩니다. */}
         <main className="min-w-0 overflow-y-auto">{children}</main>
