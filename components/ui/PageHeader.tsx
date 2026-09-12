@@ -12,19 +12,21 @@ type PageHeaderProps = {
 export function PageHeader({ breadcrumb, title, actions }: PageHeaderProps) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div className="min-w-0">
+      {/* 제목과 경로 표시를 한 줄에 둡니다.
+          items-baseline 이라 글자 크기가 달라도 아랫선이 맞습니다. */}
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h1 className="truncate text-h5 font-semibold text-body">{title}</h1>
+
         {breadcrumb !== undefined && breadcrumb.length > 0 ? (
-          <nav aria-label="현재 위치" className="text-bt-text-s text-muted">
+          <nav aria-label="현재 위치" className="truncate text-bt-text-s text-muted">
             {breadcrumb.map((step, index) => (
               <span key={step}>
-                {index > 0 ? <span className="px-1.5">&gt;</span> : null}
+                {index > 0 ? <span className="px-1">&gt;</span> : null}
                 {step}
               </span>
             ))}
           </nav>
         ) : null}
-
-        <h1 className="mt-1 truncate text-h5 font-semibold text-body">{title}</h1>
       </div>
 
       {actions !== undefined ? (

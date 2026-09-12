@@ -33,15 +33,14 @@
   --line: #e6dff2;
   --line-strong: #d2c6e6;
 
-  /* 상태 색상 (글자색과 배경색을 따로 둡니다) */
+  /* 상태 점 색상입니다. (정상 / 비정상 / 미연결) */
   --up-500: #0b6b36;
-  --up-bg: #e4f4ea;
-  --warn-500: #8a4a06;
-  --warn-bg: #fdf0dd;
   --down-500: #b02020;
-  --down-bg: #fce9e9;
   --unknown-500: #5b5273;
-  --unknown-bg: #efecf5;
+
+  /* 버튼과 입력칸이 같은 줄에서 높이가 맞도록 한 곳에서 정합니다. */
+  --control-h-sm: 28px;
+  --control-h-md: 34px;
 
   --radius-sm: 3px;
   --radius-md: 5px;
@@ -69,13 +68,8 @@
   --line-strong: #483c66;
 
   --up-500: #45e08a;
-  --up-bg: #10301f;
-  --warn-500: #ffb020;
-  --warn-bg: #33250c;
   --down-500: #ff7b7b;
-  --down-bg: #3a1c1c;
   --unknown-500: #b1a6c6;
-  --unknown-bg: #282034;
 }
 
 @layer base {
@@ -146,22 +140,34 @@
     color: var(--text-primary);
   }
 
+  /* 크기는 아래 "공통 높이" 를 씁니다.
+     위아래 여백으로 맞추면 테두리가 있는 버튼(btn-ghost)만 2px 더 커집니다. */
   .btn-sm {
-    @apply px-2.5 py-1 text-bt-text-m;
+    @apply px-2.5 text-bt-text-m;
+    height: var(--control-h-sm);
   }
 
   .btn-md {
-    @apply px-3.5 py-2 text-bt-text-large;
+    @apply px-3.5 text-bt-text-large;
+    height: var(--control-h-md);
   }
 
-  /* 입력과 선택 상자 */
+  /* 입력과 선택 상자. 같은 줄에 놓이는 버튼과 높이가 같아야 합니다. */
   .input,
   .select {
-    @apply px-2.5 py-1.5 text-b2_body_r outline-none transition duration-150;
+    @apply px-2.5 text-b2_body_r outline-none transition duration-150;
+    height: var(--control-h-md);
     border-radius: var(--radius-md);
     color: var(--text-primary);
     border: 1px solid var(--line-strong);
     background-color: var(--panel);
+  }
+
+  /* 표 위 줄처럼 촘촘한 곳에서 btn-sm 과 짝을 이루는 크기입니다. */
+  .input-sm,
+  .select-sm {
+    @apply px-2 text-bt-text-m;
+    height: var(--control-h-sm);
   }
 
   .input:focus,

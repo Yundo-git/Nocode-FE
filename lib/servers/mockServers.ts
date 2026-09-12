@@ -5,9 +5,11 @@ import type { Server } from "@/lib/servers/types";
 export const MOCK_SERVERS: readonly Server[] = [
   {
     id: "srv-test-001",
-    name: "테스트 서버",
+    nameEn: "test-server-01",
+    nameKo: "테스트 서버",
     ip: "1.1.1.1",
-    type: "일반",
+    type: "서버",
+    divisionId: "control",
     status: "up",
     responseMs: 12,
     checkedAt: "2026-09-12T11:48:20.243Z",

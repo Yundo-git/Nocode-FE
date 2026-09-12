@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 type ModalProps = {
@@ -16,6 +16,14 @@ type ModalProps = {
 // open 이 참이 되는 건 사람이 누른 뒤뿐이라 서버에서 그릴 때는 실행되지 않습니다.
 export function Modal({ open, title, onClose, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+
+  // 서버에는 document 가 없어서 포털을 만들 수 없습니다.
+  // 화면에 붙은 뒤에만 그리도록 해서, open 이 처음부터 참이어도 터지지 않게 합니다.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -43,7 +51,7 @@ export function Modal({ open, title, onClose, children }: ModalProps) {
     };
   }, [open, onClose]);
 
-  if (!open) {
+  if (!open || !mounted) {
     return null;
   }
 

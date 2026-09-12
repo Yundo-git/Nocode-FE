@@ -1,11 +1,15 @@
 import Head from "next/head";
 import { useCallback, useMemo, useState } from "react";
 import { ServerFilters } from "@/components/servers/ServerFilters";
+import { ServerRegisterModal } from "@/components/servers/ServerRegisterModal";
 import { ServerTable } from "@/components/servers/ServerTable";
+import { ErrorModal } from "@/components/ui/ErrorModal";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useServers } from "@/lib/servers/useServers";
 import {
   EMPTY_FILTERS,
+  getDisplayState,
+  type NewServerInput,
   type Server,
   type ServerFilterValues,
 } from "@/lib/servers/types";
@@ -21,12 +25,17 @@ function applyFilters(
 
   return servers.filter((server) => {
     if (keyword) {
-      const haystack = `${server.name} ${server.ip} ${server.id}`.toLowerCase();
+      const haystack =
+        `${server.nameEn} ${server.nameKo} ${server.ip}`.toLowerCase();
       if (!haystack.includes(keyword)) return false;
     }
 
     if (filters.type && server.type !== filters.type) return false;
-    if (filters.status && server.status !== filters.status) return false;
+    if (filters.divisionId && server.divisionId !== filters.divisionId) {
+      return false;
+    }
+    // 상태는 핑 결과가 아니라 화면에 보이는 점(정상/비정상/미연결) 기준으로 거릅니다.
+    if (filters.status && getDisplayState(server) !== filters.status) return false;
 
     // 날짜는 YYYY-MM-DD 문자열끼리 비교해도 순서가 맞습니다.
     const checkedDate = server.checkedAt.slice(0, 10);
@@ -38,12 +47,15 @@ function applyFilters(
 }
 
 export default function ServersPage() {
-  const { servers, status, toggleEnabled } = useServers();
+  const { servers, status, addServer, toggleEnabled } = useServers();
 
   const [filters, setFilters] = useState<ServerFilterValues>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
+  const [registerOpen, setRegisterOpen] = useState(false);
+  // 등록이 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
+  const [registerError, setRegisterError] = useState("");
 
   const filtered = useMemo(
     () => applyFilters(servers, filters),
@@ -97,6 +109,24 @@ export default function ServersPage() {
     setSelectedIds(new Set());
   }, []);
 
+  // 등록하면 새 줄이 맨 위에 붙습니다. 검색 조건 때문에 안 보일 수 있으므로
+  // 첫 쪽으로 되돌려 줍니다.
+  //
+  // 같은 IP 가 이미 있으면 등록되지 않고 실패 창이 뜹니다.
+  const handleRegister = useCallback(
+    (input: NewServerInput) => {
+      const result = addServer(input);
+
+      if (!result.ok) {
+        setRegisterError("이미 등록된 IP입니다.");
+        return;
+      }
+
+      setPage(1);
+    },
+    [addServer],
+  );
+
   return (
     <>
       <Head>
@@ -104,20 +134,7 @@ export default function ServersPage() {
       </Head>
 
       <div className="space-y-4 px-6 py-4">
-        <PageHeader
-          breadcrumb={["시스템", "서버관리"]}
-          title="서버관리"
-          actions={
-            <>
-              <button type="button" className="btn btn-ghost btn-md">
-                미리보기
-              </button>
-              <button type="button" className="btn btn-primary btn-md">
-                등록
-              </button>
-            </>
-          }
-        />
+        <PageHeader breadcrumb={["시스템", "서버관리"]} title="서버관리" />
 
         {/* 검색 조건 */}
         <ServerFilters onSearch={handleSearch} />
@@ -141,8 +158,22 @@ export default function ServersPage() {
             onToggleSelectAll={handleToggleSelectAll}
             onClearSelection={handleClearSelection}
             onToggleEnabled={toggleEnabled}
+            onRegisterClick={() => setRegisterOpen(true)}
           />
         )}
+
+        <ServerRegisterModal
+          open={registerOpen}
+          onClose={() => setRegisterOpen(false)}
+          onSubmit={handleRegister}
+        />
+
+        <ErrorModal
+          open={registerError !== ""}
+          title="등록 실패"
+          message={registerError}
+          onClose={() => setRegisterError("")}
+        />
       </div>
     </>
   );

@@ -26,11 +26,10 @@ module.exports = {
         "row-hover": "var(--row-hover)",
         line: "var(--line)",
         "line-strong": "var(--line-strong)",
-        // 상태 색상입니다.
-        up: { 500: "var(--up-500)", bg: "var(--up-bg)" },
-        warn: { 500: "var(--warn-500)", bg: "var(--warn-bg)" },
-        down: { 500: "var(--down-500)", bg: "var(--down-bg)" },
-        unknown: { 500: "var(--unknown-500)", bg: "var(--unknown-bg)" },
+        // 상태 점 색상입니다. (정상 / 비정상 / 미연결)
+        up: { 500: "var(--up-500)" },
+        down: { 500: "var(--down-500)" },
+        unknown: { 500: "var(--unknown-500)" },
         body: "var(--text-primary)",
         secondary: "var(--text-secondary)",
         muted: "var(--text-muted)",
@@ -82,10 +81,7 @@ module.exports = {
     bg-primary-500 / text-primary-600 / border-primary-300
     bg-panel / bg-panel-2 / border-line / border-line-strong
     text-body / text-secondary / text-muted / text-white
-    text-up-500 bg-up-bg      (정상)
-    text-warn-500 bg-warn-bg  (주의)
-    text-down-500 bg-down-bg  (장애)
-    text-unknown-500 bg-unknown-bg
+    bg-up-500 (정상) / bg-down-500 (비정상) / bg-unknown-500 (미연결)
 
   글자 크기:
     text-h4 (28px) / text-h5 (24px) / text-s1 (18px) / text-s2 (16px)
