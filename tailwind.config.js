@@ -32,14 +32,14 @@ module.exports = {
           100: "var(--point-100)",
           50: "var(--point-50)",
         },
-        // 대시보드 패널과 구분선 색상입니다.
+        // 패널과 구분선 색상입니다.
         panel: "var(--panel)",
         "panel-2": "var(--panel-2)",
         "row-hover": "var(--row-hover)",
         "row-zebra": "var(--row-zebra)",
         line: "var(--line)",
         "line-strong": "var(--line-strong)",
-        // 서버 상태 색상입니다.
+        // 상태 색상입니다.
         up: { 500: "var(--up-500)", bg: "var(--up-bg)" },
         warn: { 500: "var(--warn-500)", bg: "var(--warn-bg)" },
         down: { 500: "var(--down-500)", bg: "var(--down-bg)" },
@@ -51,7 +51,7 @@ module.exports = {
         main: "var(--text-primary)",
       },
       boxShadow: {
-        soft: "0 25px 80px rgba(49, 46, 129, 0.25)",
+        soft: "0 25px 80px rgba(76, 29, 149, 0.25)",
       },
       borderRadius: {
         xl: "1.75rem",
@@ -85,7 +85,7 @@ module.exports = {
         "bt-text-large": ["16px", { lineHeight: "20px" }],
         "bt-text-m": ["14px", { lineHeight: "16px" }],
         "bt-text-s": ["12px", { lineHeight: "16px" }],
-        // 표 머리글처럼 작은 라벨에 사용합니다.
+        // 작은 라벨에 사용합니다.
         "d-label": ["11px", { lineHeight: "14px", letterSpacing: "0.04em" }],
       },
       fontWeight: {
