@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { api } from "@/lib/api/client";
 import type {
   AddServerResult,
   NewServerInput,
@@ -14,13 +15,13 @@ export type LoadStatus = "loading" | "ready" | "error";
 // 나중에 실제 DB 를 붙일 때는 API 라우트(pages/api/servers) 안만 바꾸면 되고,
 // 아래 화면 코드는 그대로 둘 수 있습니다.
 export async function fetchServers(): Promise<readonly Server[]> {
-  const res = await fetch("/api/servers");
+  const res = await api.get<Server[]>("/servers");
 
   if (!res.ok) {
-    throw new Error("서버 목록을 불러오지 못했습니다.");
+    throw new Error(res.message);
   }
 
-  return (await res.json()) as Server[];
+  return res.data;
 }
 
 // 화면에서 쓰는 서버 목록 상태입니다.
@@ -53,27 +54,18 @@ export function useServers() {
   // 두 사람이 동시에 같은 IP 를 넣을 때 막지 못합니다.
   const addServer = useCallback(
     async (input: NewServerInput): Promise<AddServerResult> => {
-      try {
-        const res = await fetch("/api/servers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
-        });
+      const res = await api.post<Server>("/servers", input);
 
-        if (res.status === 409) {
-          return { ok: false, reason: "duplicate-ip" };
-        }
-
-        if (!res.ok) {
-          return { ok: false, reason: "request-failed" };
-        }
-
-        const created = (await res.json()) as Server;
-        setServers((prev) => [created, ...prev]);
-        return { ok: true };
-      } catch {
-        return { ok: false, reason: "request-failed" };
+      if (!res.ok) {
+        // 409 는 "이미 있는 IP" 라는 뜻입니다. (pages/api/servers/index.ts)
+        return {
+          ok: false,
+          reason: res.status === 409 ? "duplicate-ip" : "request-failed",
+        };
       }
+
+      setServers((prev) => [res.data, ...prev]);
+      return { ok: true };
     },
     [],
   );
@@ -97,28 +89,21 @@ export function useServers() {
         ),
       );
 
-      try {
-        const res = await fetch(`/api/servers/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ enabled: next }),
-        });
+      const res = await api.patch<Server>(`/servers/${id}`, { enabled: next });
 
-        if (!res.ok) {
-          throw new Error("저장 실패");
-        }
-
-        const updated = (await res.json()) as Server;
+      if (res.ok) {
         setServers((prev) =>
-          prev.map((server) => (server.id === id ? updated : server)),
+          prev.map((server) => (server.id === id ? res.data : server)),
         );
-      } catch {
-        setServers((prev) =>
-          prev.map((server) =>
-            server.id === id ? { ...server, enabled: !next } : server,
-          ),
-        );
+        return;
       }
+
+      // 저장에 실패했으니 눌렀던 것을 되돌립니다.
+      setServers((prev) =>
+        prev.map((server) =>
+          server.id === id ? { ...server, enabled: !next } : server,
+        ),
+      );
     },
     [servers],
   );

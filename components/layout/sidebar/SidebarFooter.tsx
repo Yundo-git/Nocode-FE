@@ -3,11 +3,11 @@ import {
   AccountMenu,
   type AccountMenuItem,
 } from "@/components/layout/sidebar/AccountMenu";
-import { ColorMode } from "@/components/ui/ColorMode";
 import { LogoutIcon } from "@/components/ui/icons";
 import { useAuth } from "@/lib/auth";
 
-// 사이드바 맨 아래입니다. 계정명, 로그아웃, 화면 모드 선택이 들어갑니다.
+// 사이드바 맨 아래입니다. 계정명과 로그아웃이 들어갑니다.
+// (화면 모드 전환은 내 설정 화면으로 옮겼습니다)
 export function SidebarFooter({ open }: { open: boolean }) {
   const { user, logout } = useAuth();
 
@@ -42,11 +42,12 @@ export function SidebarFooter({ open }: { open: boolean }) {
         </button>
       </div>
 
-      {/* 화면 모드 선택 상자는 접었을 때 들어갈 자리가 없어 숨깁니다. */}
+      {/* 저작권 표시.
+          모든 화면에 늘 떠 있는 사이드바 맨 아래에 두되,
+          가장 작은 글씨(11px)와 흐린 색으로 두어 작업을 방해하지 않습니다.
+          접었을 때는 자리가 없어 숨깁니다. */}
       {open ? (
-        <div className="mt-2">
-          <ColorMode />
-        </div>
+        <p className="mt-2.5 text-d-label text-muted/70">© 2026 ydh</p>
       ) : null}
     </div>
   );

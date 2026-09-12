@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { FilterField, FilterForm } from "@/components/ui/FilterForm";
 import {
   BUSINESS_DIVISIONS,
   type BusinessDivisionId,
@@ -37,24 +38,15 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    onSearch(draft);
-  };
-
   const handleReset = () => {
     setDraft(EMPTY_FILTERS);
     onSearch(EMPTY_FILTERS);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="panel px-4 py-4">
-      {/* 넓은 화면에서는 왼쪽에 조건들, 오른쪽 끝에 버튼이 옵니다.
-          items-end 라서 버튼이 조건의 마지막 줄과 같은 높이에 놓입니다. */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
-        <div className="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-3 lg:grid-cols-2">
+    <FilterForm onSubmit={() => onSearch(draft)} onReset={handleReset}>
           {/* 등록일시 */}
-          <Field label="등록일시" htmlFor="filter-from">
+          <FilterField label="등록일시" htmlFor="filter-from">
             <div className="flex min-w-0 items-center gap-2">
               <input
                 id="filter-from"
@@ -72,10 +64,10 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
                 className="input min-w-0 flex-1"
               />
             </div>
-          </Field>
+          </FilterField>
 
           {/* 서버 ID / IP / 이름 검색 */}
-          <Field label="서버명 · IP" htmlFor="filter-keyword">
+          <FilterField label="서버명 · IP" htmlFor="filter-keyword">
             <input
               id="filter-keyword"
               type="search"
@@ -84,10 +76,10 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
               placeholder="서버명이나 IP를 입력해주세요"
               className="input w-full"
             />
-          </Field>
+          </FilterField>
 
           {/* 타입 */}
-          <Field label="타입" htmlFor="filter-type">
+          <FilterField label="타입" htmlFor="filter-type">
             <select
               id="filter-type"
               value={draft.type}
@@ -103,12 +95,12 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
                 </option>
               ))}
             </select>
-          </Field>
+          </FilterField>
 
           {/* 상태 */}
           {/* 업무구분. 선택지는 lib/businessDivisions.ts 한 곳에서 옵니다.
               나중에 계정 권한 화면도 같은 배열을 씁니다. */}
-          <Field label="업무구분" htmlFor="filter-division">
+          <FilterField label="업무구분" htmlFor="filter-division">
             <select
               id="filter-division"
               value={draft.divisionId}
@@ -127,9 +119,9 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
                 </option>
               ))}
             </select>
-          </Field>
+          </FilterField>
 
-          <Field label="상태" htmlFor="filter-status">
+          <FilterField label="상태" htmlFor="filter-status">
             <select
               id="filter-status"
               value={draft.status}
@@ -145,41 +137,7 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
                 </option>
               ))}
             </select>
-          </Field>
-        </div>
-
-        <div className="flex shrink-0 items-center justify-end gap-2">
-          <button type="button" onClick={handleReset} className="btn btn-ghost btn-md">
-            초기화
-          </button>
-          <button type="submit" className="btn btn-primary btn-md">
-            검색
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-// 라벨과 입력칸을 한 줄로 묶습니다.
-function Field({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-      <label
-        htmlFor={htmlFor}
-        className="shrink-0 text-b2_body_m font-medium text-secondary sm:w-24"
-      >
-        {label}
-      </label>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
+          </FilterField>
+    </FilterForm>
   );
 }

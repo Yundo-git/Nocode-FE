@@ -1,20 +1,15 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { methodHandler } from "@/lib/api/handler";
 import { createServerRecord, listServers } from "@/lib/servers/serverStore";
 import { parseNewServerInput } from "@/lib/servers/validation";
 
 // GET  /api/servers  목록
 // POST /api/servers  한 대 등록
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  if (req.method === "GET") {
-    const servers = await listServers();
-    res.status(200).json(servers);
-    return;
-  }
+export default methodHandler({
+  GET: async (_req, res) => {
+    res.status(200).json(await listServers());
+  },
 
-  if (req.method === "POST") {
+  POST: async (req, res) => {
     // 브라우저 검사는 통과해도 요청은 직접 만들 수 있으므로 여기서 다시 봅니다.
     const input = parseNewServerInput(req.body);
 
@@ -32,9 +27,5 @@ export default async function handler(
     }
 
     res.status(201).json(result.server);
-    return;
-  }
-
-  res.setHeader("Allow", ["GET", "POST"]);
-  res.status(405).json({ message: "지원하지 않는 방식입니다." });
-}
+  },
+});

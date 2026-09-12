@@ -1,5 +1,6 @@
 import Head from "next/head";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
+import { useTableState } from "@/lib/useTableState";
 import { ServerFilters } from "@/components/servers/ServerFilters";
 import { ServerRegisterModal } from "@/components/servers/ServerRegisterModal";
 import { ServerTable } from "@/components/servers/ServerTable";
@@ -49,37 +50,18 @@ function applyFilters(
 export default function ServersPage() {
   const { servers, status, addServer, toggleEnabled } = useServers();
 
-  const [filters, setFilters] = useState<ServerFilterValues>(EMPTY_FILTERS);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
   // 등록이 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
   const [registerError, setRegisterError] = useState("");
 
-  const filtered = useMemo(
-    () => applyFilters(servers, filters),
-    [servers, filters],
+  // 목록을 거르는 규칙만 넘기면 쪽 나누기는 useTableState 가 맡습니다.
+  const filterServers = useCallback(
+    (values: ServerFilterValues) => applyFilters(servers, values),
+    [servers],
   );
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  // 조건이 바뀌어 쪽 수가 줄면 현재 쪽이 범위를 넘을 수 있어 잘라 줍니다.
-  const currentPage = Math.min(page, totalPages);
-
-  const rows = useMemo(
-    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [filtered, currentPage, pageSize],
-  );
-
-  const handleSearch = useCallback((next: ServerFilterValues) => {
-    setFilters(next);
-    setPage(1);
-  }, []);
-
-  const handlePageSizeChange = useCallback((next: number) => {
-    setPageSize(next);
-    setPage(1);
-  }, []);
+  const table = useTableState(EMPTY_FILTERS, filterServers);
 
   const handleToggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -94,16 +76,17 @@ export default function ServersPage() {
   const handleToggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      const allSelected = rows.length > 0 && rows.every((row) => next.has(row.id));
+      const allSelected =
+        table.rows.length > 0 && table.rows.every((row) => next.has(row.id));
 
-      for (const row of rows) {
+      for (const row of table.rows) {
         if (allSelected) next.delete(row.id);
         else next.add(row.id);
       }
 
       return next;
     });
-  }, [rows]);
+  }, [table.rows]);
 
   const handleClearSelection = useCallback(() => {
     setSelectedIds(new Set());
@@ -126,9 +109,9 @@ export default function ServersPage() {
         return;
       }
 
-      setPage(1);
+      table.setPage(1);
     },
-    [addServer],
+    [addServer, table],
   );
 
   return (
@@ -141,7 +124,7 @@ export default function ServersPage() {
         <PageHeader breadcrumb={["시스템", "서버관리"]} title="서버관리" />
 
         {/* 검색 조건 */}
-        <ServerFilters onSearch={handleSearch} />
+        <ServerFilters onSearch={table.search} />
 
         {/* 서버 목록 */}
         {status === "error" ? (
@@ -150,14 +133,14 @@ export default function ServersPage() {
           </div>
         ) : (
           <ServerTable
-            rows={rows}
-            totalCount={filtered.length}
-            page={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
+            rows={table.rows}
+            totalCount={table.totalCount}
+            page={table.page}
+            totalPages={table.totalPages}
+            pageSize={table.pageSize}
             selectedIds={selectedIds}
-            onPageChange={setPage}
-            onPageSizeChange={handlePageSizeChange}
+            onPageChange={table.setPage}
+            onPageSizeChange={table.changePageSize}
             onToggleSelect={handleToggleSelect}
             onToggleSelectAll={handleToggleSelectAll}
             onClearSelection={handleClearSelection}

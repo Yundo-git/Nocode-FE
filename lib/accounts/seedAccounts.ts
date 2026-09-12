@@ -1,0 +1,67 @@
+import type { Account } from "@/lib/accounts/types";
+
+// data/accounts.json 이 아직 없을 때 처음 한 번 넣는 값입니다.
+// 파일이 만들어진 뒤에는 이 값을 고쳐도 반영되지 않습니다.
+// (다시 넣으려면 data/accounts.json 을 지우면 됩니다.)
+export const SEED_ACCOUNTS: readonly Account[] = [
+  {
+    id: "acc-001",
+    loginId: "admin.control",
+    name: "박관제",
+    email: "control.admin@example.com",
+    phone: "010-1234-5678",
+    divisionId: "control",
+    role: "admin",
+    enabled: true,
+    notifyEnabled: true,
+    createdAt: "2026-01-05T09:00:00.000Z",
+  },
+  {
+    id: "acc-002",
+    loginId: "watch.control",
+    name: "최모니",
+    email: "control.watch@example.com",
+    phone: "010-2345-6789",
+    divisionId: "control",
+    role: "viewer",
+    enabled: true,
+    notifyEnabled: true,
+    createdAt: "2026-02-11T09:00:00.000Z",
+  },
+  {
+    id: "acc-003",
+    loginId: "admin.judicial",
+    name: "김사법",
+    email: "judicial.admin@example.com",
+    phone: "010-3456-7890",
+    divisionId: "judicial",
+    role: "admin",
+    enabled: true,
+    notifyEnabled: true,
+    createdAt: "2026-02-20T09:00:00.000Z",
+  },
+  {
+    id: "acc-004",
+    loginId: "watch.registry",
+    name: "이등기",
+    email: "registry.watch@example.com",
+    phone: "010-4567-8901",
+    divisionId: "registry",
+    role: "viewer",
+    enabled: false,
+    notifyEnabled: true,
+    createdAt: "2026-03-02T09:00:00.000Z",
+  },
+  {
+    id: "acc-005",
+    loginId: "admin.family",
+    name: "정가족",
+    email: "family.admin@example.com",
+    phone: "010-5678-9012",
+    divisionId: "family",
+    role: "admin",
+    enabled: true,
+    notifyEnabled: true,
+    createdAt: "2026-03-15T09:00:00.000Z",
+  },
+];

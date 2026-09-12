@@ -33,7 +33,7 @@ export function SidebarHeader({ open, onToggle }: SidebarHeaderProps) {
       }
     >
       {open ? (
-        <span className="min-w-0 flex-1 truncate text-d-label font-bold uppercase text-muted">
+        <span className="min-w-0 flex-1 truncate text-bt-text-m font-bold uppercase text-muted">
           상태 확인 모니터링 서버
         </span>
       ) : null}
