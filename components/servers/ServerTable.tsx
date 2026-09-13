@@ -14,6 +14,8 @@ import {
 const DOT_COLOR: Record<ServerDisplayState, string> = {
   online: "bg-up-500",
   offline: "bg-down-500",
+  // 주황입니다. 아직 확정 못 한 상태라 빨강도 초록도 아닙니다.
+  pending: "bg-pending-500",
   disabled: "bg-unknown-500",
 };
 
@@ -52,6 +54,11 @@ type ServerTableProps = {
   onRegisterClick: () => void;
   /** 고른 장비를 지웁니다. 되묻는 창은 페이지가 띄웁니다. */
   onDeleteSelected: () => void;
+  /** 지금 조건 그대로 목록을 내려받습니다. */
+  onDownload: () => void;
+  downloading: boolean;
+  /** 일괄등록 창을 엽니다. */
+  onImportClick: () => void;
   /**
    * 줄을 누르면 수정 창이 열립니다.
    * 권한이 없으면 undefined 가 와서 눌리지 않습니다.
@@ -76,6 +83,9 @@ export function ServerTable({
   onToggleEnabled,
   onRegisterClick,
   onDeleteSelected,
+  onDownload,
+  downloading,
+  onImportClick,
   onRowClick,
 }: ServerTableProps) {
   // 방금 등록된 줄을 잠깐 표시해 줍니다.
@@ -109,7 +119,7 @@ export function ServerTable({
     rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
 
   return (
-    <div className="panel flex min-w-0 flex-col">
+    <div className="panel flex min-h-[18rem] min-w-0 flex-1 flex-col">
       {/* 표 위 줄: 왼쪽은 건수와 선택 관련, 오른쪽은 내려받기와 등록, 쪽 크기 */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
@@ -136,22 +146,18 @@ export function ServerTable({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 아직 만들지 않았습니다. 눌러도 아무 일 없는 것보다
-              눌리지 않는 편이 오해가 없습니다. */}
           <button
             type="button"
-            disabled
-            title="준비 중입니다"
+            onClick={onDownload}
+            disabled={downloading || totalCount === 0}
+            title={totalCount === 0 ? "내려받을 장비가 없습니다" : undefined}
             className="btn btn-ghost btn-sm"
           >
-            엑셀 다운로드
+            {downloading ? "만드는 중…" : "엑셀 다운로드"}
           </button>
-          {/* 아직 만들지 않았습니다. 눌러도 아무 일 없는 것보다
-              눌리지 않는 편이 오해가 없습니다. */}
           <button
             type="button"
-            disabled
-            title="준비 중입니다"
+            onClick={onImportClick}
             className="btn btn-ghost btn-sm"
           >
             일괄등록
@@ -179,7 +185,7 @@ export function ServerTable({
       </div>
 
       {/* 표. 좁은 화면에서는 가로로만 스크롤됩니다. */}
-      <div className="min-w-0 overflow-x-auto">
+      <div className="min-h-0 min-w-0 flex-1 overflow-auto">
         <table className="data-table min-w-[980px]">
           <colgroup>
             <col className="w-12" />
@@ -275,7 +281,3 @@ export function ServerTable({
     </div>
   );
 }
-
-// 2026-09-12 11:48:20 형태로 보여 줍니다.
-// toLocaleString 은 서버와 브라우저의 시간대/언어 설정이 달라 결과가 어긋날 수 있어
-// 직접 자릿수를 맞춥니다.

@@ -75,11 +75,11 @@ type DashboardGridProps = {
    */
   fitRows: number;
   /**
-   * TV모드 버튼을 눌렀을 때 할 일입니다.
-   * 넘기지 않으면 버튼이 눌리지 않는 상태로 보입니다. (아직 만들지 않음)
+   * TV모드 버튼을 눌렀을 때 할 일입니다. (대시보드는 /tv 로 보냅니다)
+   * 넘기지 않으면 버튼이 눌리지 않는 상태로 보입니다.
    */
   onTvMode?: () => void;
-  /** 도구 줄 왼쪽에 놓을 것입니다. (작업 모드 버튼 등) */
+  /** 도구 줄 왼쪽에 놓을 것입니다. (알림 켜고 끄기 버튼 등) */
   toolbarLeft?: ReactNode;
   /** 각 자식의 key 가 배치의 i 와 같아야 합니다. */
   children: ReactNode;
@@ -205,13 +205,11 @@ export function DashboardGrid({
             기본 배치로 되돌리기
           </button>
 
-        {/* 관제실 화면용 버튼입니다.
-            대시보드 내용이 채워진 뒤에 만들 예정이라 아직 동작하지 않습니다. */}
+        {/* 관제실 벽 화면으로 넘어갑니다. (pages/tv.tsx) */}
           <button
             type="button"
             onClick={onTvMode}
             disabled={onTvMode === undefined}
-            title={onTvMode === undefined ? "준비 중입니다" : undefined}
             className="btn btn-ghost btn-sm"
           >
             <TvIcon width={16} height={16} />

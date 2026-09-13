@@ -47,7 +47,7 @@ export function AccountTable({
   onRowClick,
 }: AccountTableProps) {
   return (
-    <div className="panel flex min-w-0 flex-col">
+    <div className="panel flex min-h-[18rem] min-w-0 flex-1 flex-col">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
         <span className="text-b2_body_m font-medium text-secondary">
           총 {totalCount}건 ({page}/{Math.max(totalPages, 1)} page)
@@ -82,7 +82,7 @@ export function AccountTable({
         </div>
       </div>
 
-      <div className="min-w-0 overflow-x-auto">
+      <div className="min-h-0 min-w-0 flex-1 overflow-auto">
         <table className="data-table min-w-[900px]">
           <colgroup>
             <col className="w-40" />

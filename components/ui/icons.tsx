@@ -172,6 +172,40 @@ export function LogIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// 휴지통 아이콘입니다. 지우는 버튼에 씁니다.
+//
+// ★ 글자("삭제")나 × 대신 쓰는 이유
+//   × 는 "닫기" 로 읽히기 쉽습니다. 알림함에서는 닫는 것과 지우는 것이
+//   전혀 다른 일이라, 잘못 누르면 되돌릴 수 없습니다.
+export function TrashIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      {/* 뚜껑과 손잡이 */}
+      <path d="M4 7H20" {...stroke} />
+      <path d="M9.5 7V5.5C9.5 5.22386 9.72386 5 10 5H14C14.2761 5 14.5 5.22386 14.5 5.5V7" {...stroke} />
+      {/* 통 */}
+      <path d="M6 7L6.8 19.1C6.82 19.6 7.24 20 7.74 20H16.26C16.76 20 17.18 19.6 17.2 19.1L18 7" {...stroke} />
+      {/* 안쪽 줄 둘 */}
+      <path d="M10 11V16M14 11V16" {...stroke} />
+    </IconBase>
+  );
+}
+
+// 작업이력 아이콘입니다. 시계를 되감는 모양 — "지난 일" 을 뜻합니다.
+// 로그조회(문서 모양)와 한눈에 구분되어야 해서 다른 모양으로 그렸습니다.
+export function HistoryIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      {/* 12시에서 왼쪽으로 살짝 열린 원입니다. 되감기는 느낌을 줍니다. */}
+      <path d="M4 12a8 8 0 1 0 2.5-5.8" {...stroke} />
+      {/* 되감기 화살표 */}
+      <path d="M3.5 4.5V9.5H8.5" {...stroke} />
+      {/* 시곗바늘 */}
+      <path d="M12 7.5V12L15 14" {...stroke} />
+    </IconBase>
+  );
+}
+
 // 비상(경고) 아이콘입니다. 원본 svg 가 없어 직접 그렸습니다.
 export function AlertIcon(props: SVGProps<SVGSVGElement>) {
   return (

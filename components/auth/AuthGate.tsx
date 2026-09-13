@@ -9,6 +9,16 @@ export function isPublicRoute(pathname: string) {
   return PUBLIC_ROUTES.includes(pathname);
 }
 
+// 로그인은 필요하지만 사이드바는 없는 화면입니다.
+//
+// TV모드는 벽에 띄워 두는 화면이라 누를 것이 없어야 합니다.
+// 그렇다고 누구나 볼 수 있게 두면 장비 목록이 그대로 새어 나갑니다.
+const BARE_ROUTES = ["/tv"];
+
+export function isBareRoute(pathname: string) {
+  return BARE_ROUTES.includes(pathname);
+}
+
 // 로그인하지 않았으면 어느 화면으로 들어와도 로그인 화면으로 보냅니다.
 // 반대로 이미 로그인한 사람이 로그인 화면에 오면 첫 화면으로 보냅니다.
 export function AuthGate({ children }: { children: ReactNode }) {

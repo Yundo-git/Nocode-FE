@@ -71,7 +71,7 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
           type="search"
           value={draft.keyword}
           onChange={(event) => update("keyword", event.currentTarget.value)}
-          placeholder="장비명이나 IP를 입력해주세요"
+          placeholder="한글명·영문명·IP를 입력해주세요"
           className="input w-full"
         />
       </FilterField>

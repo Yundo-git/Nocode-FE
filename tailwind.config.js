@@ -26,9 +26,10 @@ module.exports = {
         "row-hover": "var(--row-hover)",
         line: "var(--line)",
         "line-strong": "var(--line-strong)",
-        // 상태 점 색상입니다. (정상 / 비정상 / 미연결)
+        // 상태 점 색상입니다. (정상 / 비정상 / 확인 중 / 미연결)
         up: { 500: "var(--up-500)" },
         down: { 500: "var(--down-500)" },
+        pending: { 500: "var(--pending-500)" },
         unknown: { 500: "var(--unknown-500)" },
         body: "var(--text-primary)",
         secondary: "var(--text-secondary)",

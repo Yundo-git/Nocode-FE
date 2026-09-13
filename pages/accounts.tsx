@@ -100,7 +100,11 @@ function AccountsPage() {
         <title>계정관리 | PingCheck</title>
       </Head>
 
-      <div className="space-y-4 px-6 py-4">
+      {/* ★ 화면 높이에 맞춰 채웁니다. 페이지 전체가 스크롤되지 않게 하려는 것입니다.
+          표가 길어졌을 때 페이지가 통째로 내려가면 검색 조건과 쪽 번호가
+          화면 밖으로 밀려나, 다음 쪽으로 가려고 매번 끝까지 내려야 합니다.
+          아래 표 안쪽만 스크롤됩니다. (머리글은 sticky 로 붙어 있습니다) */}
+      <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "계정관리"]} title="계정관리" />
 
         <AccountFilters onSearch={table.search} />

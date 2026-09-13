@@ -5,7 +5,7 @@ import type { ProblemServer } from "@/lib/dashboard/types";
 type ClockOrAlertProps = {
   /** 손봐야 할 장비입니다. 비정상이 있을 때만 알림으로 바뀝니다. */
   problems: readonly ProblemServer[];
-  /** 작업 모드면 깜빡임을 멈춥니다. */
+  /** 내 알림을 꺼 뒀으면 깜빡임을 멈춥니다. (사람마다 다릅니다) */
   muted: boolean;
   now: number;
 };

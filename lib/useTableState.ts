@@ -96,6 +96,8 @@ export function useTableState<F, T>(
   }, [load, filters, page, pageSize]);
 
   return {
+    /** 지금 걸려 있는 검색 조건입니다. 내려받기가 같은 조건을 써야 합니다. */
+    filters,
     rows,
     totalCount,
     status,

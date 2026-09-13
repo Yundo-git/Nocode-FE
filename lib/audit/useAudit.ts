@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import { downloadFile } from "@/lib/api/download";
-import { EMPTY_LOG_QUERY, type LogPage, type LogQuery } from "@/lib/logs/types";
+import { EMPTY_AUDIT_QUERY, type AuditPage, type AuditQuery } from "@/lib/audit/types";
 
-export type LogStatus = "loading" | "ready" | "error";
+export type AuditStatus = "loading" | "ready" | "error";
 
 // 조건을 주소 뒤에 붙일 문자열로 바꿉니다. 빈 값은 보내지 않습니다.
-function toSearch(query: LogQuery): string {
+function toSearch(query: AuditQuery): string {
   const params = new URLSearchParams();
 
   params.set("page", String(query.page));
@@ -14,22 +14,16 @@ function toSearch(query: LogQuery): string {
 
   if (query.from) params.set("from", query.from);
   if (query.to) params.set("to", query.to);
-  if (query.serverId) params.set("serverId", query.serverId);
+  if (query.group) params.set("group", query.group);
   if (query.keyword.trim()) params.set("keyword", query.keyword.trim());
-  if (query.type) params.set("type", query.type);
-  if (query.divisionId) params.set("divisionId", query.divisionId);
 
   return params.toString();
 }
 
-// 로그 조회 상태입니다.
-//
-// 조건과 쪽 번호를 서버로 보내고 그 쪽만 받아 옵니다.
-// (서버관리·계정관리도 이제 같은 방식입니다)
-export function useLogs() {
-  const [query, setQuery] = useState<LogQuery>(EMPTY_LOG_QUERY);
-  const [page, setPage] = useState<LogPage>({ rows: [], totalCount: 0 });
-  const [status, setStatus] = useState<LogStatus>("loading");
+export function useAudit() {
+  const [query, setQuery] = useState<AuditQuery>(EMPTY_AUDIT_QUERY);
+  const [page, setPage] = useState<AuditPage>({ rows: [], totalCount: 0 });
+  const [status, setStatus] = useState<AuditStatus>("loading");
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -38,7 +32,7 @@ export function useLogs() {
     setStatus("loading");
 
     api
-      .get<LogPage>(`/logs?${toSearch(query)}`)
+      .get<AuditPage>(`/audit?${toSearch(query)}`)
       .then((res) => {
         if (!alive) return;
 
@@ -59,18 +53,12 @@ export function useLogs() {
     };
   }, [query]);
 
-  /**
-   * 지금 조건 그대로 CSV 를 내려받습니다.
-   *
-   * ★ 보고 있는 쪽이 아니라 **조건에 맞는 전체**를 받습니다.
-   *   50줄만 받으려고 내려받기를 누르지는 않습니다.
-   */
   const download = useCallback(async (): Promise<string> => {
     setDownloading(true);
 
     try {
       return await downloadFile(
-        `/logs/export?${toSearch(query)}`,
+        `/audit/export?${toSearch(query)}`,
         "너무 많아 최근 50,000건만 받았습니다. 기간을 좁혀 다시 받아 주세요.",
       );
     } finally {
@@ -79,7 +67,7 @@ export function useLogs() {
   }, [query]);
 
   // 조건이 바뀌면 첫 쪽부터 다시 봅니다.
-  const search = useCallback((next: Omit<LogQuery, "page" | "pageSize">) => {
+  const search = useCallback((next: Omit<AuditQuery, "page" | "pageSize">) => {
     setQuery((prev) => ({ ...prev, ...next, page: 1 }));
   }, []);
 
@@ -91,14 +79,12 @@ export function useLogs() {
     setQuery((prev) => ({ ...prev, pageSize: next, page: 1 }));
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(page.totalCount / query.pageSize));
-
   return {
     rows: page.rows,
     totalCount: page.totalCount,
     page: query.page,
     pageSize: query.pageSize,
-    totalPages,
+    totalPages: Math.max(1, Math.ceil(page.totalCount / query.pageSize)),
     status,
     search,
     goToPage,

@@ -1,28 +1,38 @@
 import { Pagination } from "@/components/ui/Pagination";
 import { formatDateTime } from "@/lib/datetime";
-import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
-import { LOG_TYPE_LABEL, type LogEntry, type LogType } from "@/lib/logs/types";
+import { BUSINESS_DIVISION_LABEL, type BusinessDivisionId } from "@/lib/businessDivisions";
 import { useColumnWidths } from "@/lib/useColumnWidths";
+import { AUDIT_ACTION_LABEL, type AuditEntry } from "@/lib/audit/types";
 
-// 로그 종류별 색입니다. 모두 테마에 따라 바뀌는 토큰만 씁니다.
-const TYPE_CLASS: Record<LogType, string> = {
-  down: "text-down-500 font-bold",
-  up: "text-up-500 font-bold",
-  registered: "text-secondary",
-};
+// 한 일에 따른 색입니다. 모두 테마에 따라 바뀌는 토큰만 씁니다.
+//
+// ★ 지우는 일과 로그인 실패만 붉게 둡니다.
+//   전부 색을 입히면 아무것도 안 튀어나옵니다. 되짚어 볼 때 먼저 찾는 것은
+//   "누가 지웠나" 와 "누가 두드렸나" 둘입니다.
+function actionClass(action: string): string {
+  if (
+    action.endsWith(".delete") ||
+    action === "auth.login.fail" ||
+    action === "access.rejected"
+  ) {
+    return "text-down-500 font-bold";
+  }
+  if (action.startsWith("auth.")) return "text-muted";
+
+  return "text-secondary";
+}
 
 // 열 정의입니다. 너비를 조절할 수 있어 한 곳에 모아 둡니다.
-//
-// 마지막 열("내용")에는 손잡이를 달지 않습니다.
-// 남는 자리를 모두 차지하는 열이라, 끌어도 기준이 없어 이상하게 움직입니다.
+// 마지막 열("내용")에는 손잡이를 달지 않습니다 — 남는 자리를 다 차지하는 열이라
+// 끌어도 기준이 없어 이상하게 움직입니다.
 const COLUMNS = [
   { key: "occurredAt", label: "발생 시각", width: 168 },
-  { key: "type", label: "종류", width: 104 },
-  { key: "ip", label: "IP", width: 132 },
-  { key: "serverType", label: "타입", width: 80 },
+  { key: "actor", label: "한 사람", width: 140 },
+  { key: "actorName", label: "이름", width: 100 },
+  { key: "actorIp", label: "접속 IP", width: 132 },
+  { key: "action", label: "한 일", width: 128 },
+  { key: "target", label: "대상", width: 200 },
   { key: "division", label: "업무구분", width: 88 },
-  { key: "nameEn", label: "영문명", width: 132 },
-  { key: "nameKo", label: "한글명", width: 132 },
   { key: "detail", label: "내용", width: 0 }, // 남는 자리를 다 씁니다
 ] as const;
 
@@ -30,25 +40,24 @@ const DEFAULT_WIDTHS = Object.fromEntries(
   COLUMNS.filter((c) => c.width > 0).map((c) => [c.key, c.width]),
 );
 
-const WIDTH_STORAGE_KEY = "pingcheck-log-columns-v2";
+const WIDTH_STORAGE_KEY = "pingcheck-audit-columns-v1";
 
-type LogTableProps = {
-  rows: readonly LogEntry[];
+const PAGE_SIZE_OPTIONS = [50, 100, 200] as const;
+
+type AuditTableProps = {
+  rows: readonly AuditEntry[];
   totalCount: number;
   page: number;
   totalPages: number;
   pageSize: number;
   loading: boolean;
-  /** 지금 조건 그대로 CSV 를 내려받습니다. */
   onDownload: () => void;
   downloading: boolean;
   onPageChange: (next: number) => void;
   onPageSizeChange: (next: number) => void;
 };
 
-const PAGE_SIZE_OPTIONS = [50, 100, 200] as const;
-
-export function LogTable({
+export function AuditTable({
   rows,
   totalCount,
   page,
@@ -59,7 +68,7 @@ export function LogTable({
   downloading,
   onPageChange,
   onPageSizeChange,
-}: LogTableProps) {
+}: AuditTableProps) {
   const { widths, startResize, reset, changed } = useColumnWidths(
     WIDTH_STORAGE_KEY,
     DEFAULT_WIDTHS,
@@ -73,8 +82,6 @@ export function LogTable({
             총 {totalCount.toLocaleString("en-US")}건 ({page}/{totalPages} page)
           </span>
 
-          {/* 열 너비를 건드렸을 때만 나옵니다.
-              평소에 띄워 두면 무엇을 되돌리는지 알 수 없어 오히려 방해가 됩니다. */}
           {changed ? (
             <button type="button" onClick={reset} className="btn btn-ghost btn-sm">
               열 너비 초기화
@@ -87,7 +94,7 @@ export function LogTable({
             type="button"
             onClick={onDownload}
             disabled={downloading || totalCount === 0}
-            title={totalCount === 0 ? "내려받을 로그가 없습니다" : undefined}
+            title={totalCount === 0 ? "내려받을 이력이 없습니다" : undefined}
             className="btn btn-ghost btn-sm"
           >
             {downloading ? "만드는 중…" : "엑셀 다운로드"}
@@ -114,10 +121,7 @@ export function LogTable({
             {COLUMNS.map((column) => (
               <col
                 key={column.key}
-                // 마지막 열은 너비를 주지 않아 남는 자리를 다 차지합니다.
-                style={
-                  column.width > 0 ? { width: widths[column.key] } : undefined
-                }
+                style={column.width > 0 ? { width: widths[column.key] } : undefined}
               />
             ))}
           </colgroup>
@@ -128,16 +132,12 @@ export function LogTable({
                 <th key={column.key} scope="col" className="relative">
                   {column.label}
 
-                  {/* 열 사이의 줄입니다. 잡아 끌면 왼쪽 열의 너비가 바뀝니다.
-                      마지막 열에는 달지 않습니다. */}
                   {index < COLUMNS.length - 1 ? (
                     <span
                       role="separator"
                       aria-orientation="vertical"
                       aria-label={`${column.label} 열 너비 조절`}
                       onPointerDown={(event) => startResize(column.key, event)}
-                      // -right-1.5 ~ w-3: 줄보다 넓게 잡아, 정확히 겨누지 않아도
-                      // 집히도록 합니다. 1px 짜리 선은 마우스로 잡기 어렵습니다.
                       className="absolute -right-1.5 top-0 z-10 flex h-full w-3 cursor-col-resize touch-none items-center justify-center"
                     >
                       <span className="h-1/2 w-px bg-line-strong transition-colors hover:bg-primary-500" />
@@ -158,22 +158,32 @@ export function LogTable({
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={COLUMNS.length} className="py-10 text-center text-muted">
-                  조건에 맞는 로그가 없습니다.
+                  조건에 맞는 이력이 없습니다.
                 </td>
               </tr>
             ) : (
-              rows.map((log) => (
-                <tr key={log.id}>
-                  <td className="font-mono">{formatDateTime(log.occurredAt)}</td>
-                  <td className={TYPE_CLASS[log.type]}>
-                    {LOG_TYPE_LABEL[log.type]}
+              rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="font-mono">{formatDateTime(row.occurredAt)}</td>
+                  <td className="font-mono">{row.actorLoginId}</td>
+                  <td>{row.actorName}</td>
+                  {/* 화면을 거치지 않고 들어온 요청은 IP 가 없을 수 있습니다. */}
+                  <td className="font-mono">{row.actorIp ?? "-"}</td>
+                  {/* 모르는 행위 이름이면 그대로 보여 줍니다. 감추면 무슨 일이었는지 사라집니다. */}
+                  <td className={actionClass(row.action)}>
+                    {AUDIT_ACTION_LABEL[row.action] ?? row.action}
                   </td>
-                  <td className="font-mono">{log.serverIp}</td>
-                  <td>{log.serverType}</td>
-                  <td>{BUSINESS_DIVISION_LABEL[log.divisionId]}</td>
-                  <td className="font-mono">{log.serverNameEn}</td>
-                  <td>{log.serverNameKo}</td>
-                  <td>{log.detail}</td>
+                  <td className="truncate" title={row.targetLabel}>
+                    {row.targetLabel === "" ? "-" : row.targetLabel}
+                  </td>
+                  {/* 로그인·설정처럼 파트와 무관한 일은 빈 칸입니다. */}
+                  <td>
+                    {row.divisionId === null
+                      ? "-"
+                      : (BUSINESS_DIVISION_LABEL[row.divisionId as BusinessDivisionId] ??
+                        row.divisionId)}
+                  </td>
+                  <td>{row.detail}</td>
                 </tr>
               ))
             )}

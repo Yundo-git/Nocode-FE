@@ -1,3 +1,12 @@
+/**
+ * 이름 길이 상한입니다.
+ *
+ * ★ 없으면 표가 무너집니다. 일괄등록으로 300자짜리 이름이 들어오면
+ *   목록의 한 줄이 화면을 밀어내고, 내려받기 파일도 읽기 어려워집니다.
+ *   (백엔드 검증과 DB 의 CHECK 에도 같은 값이 걸려 있습니다)
+ */
+const MAX_NAME_LENGTH = 50;
+
 // 0~255 네 덩어리인지 봅니다.
 //
 // 앞자리 0 도 막습니다. "01.1.1.1" 과 "1.1.1.1" 은 같은 서버를 가리키는데
@@ -91,7 +100,13 @@ export function validateNewServerInput(input: {
   if (!isValidServerNameEn(input.nameEn.trim())) {
     return "영문명은 영문·숫자와 . _ - 만 쓸 수 있습니다.";
   }
+  if (input.nameEn.trim().length > MAX_NAME_LENGTH) {
+    return `영문명은 ${MAX_NAME_LENGTH}자까지 쓸 수 있습니다.`;
+  }
   if (!input.nameKo.trim()) return "한글명을 입력해주세요.";
+  if (input.nameKo.trim().length > MAX_NAME_LENGTH) {
+    return `한글명은 ${MAX_NAME_LENGTH}자까지 쓸 수 있습니다.`;
+  }
 
   return "";
 }

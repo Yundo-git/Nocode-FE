@@ -22,6 +22,7 @@ type ServerFiltersProps = {
 const STATUS_OPTIONS: readonly ServerDisplayState[] = [
   "online",
   "offline",
+  "pending",
   "disabled",
 ];
 
@@ -50,10 +51,10 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
 
   return (
     <FilterForm onSubmit={() => onSearch(draft)} onReset={handleReset}>
-          {/* 등록일시. 로그조회와 같은 칸을 씁니다. */}
+          {/* 마지막 확인. 로그조회와 같은 칸을 씁니다. */}
           <DateRangeField
             key={resetKey}
-            label="등록일시"
+            label="마지막 확인"
             idPrefix="server"
             from={draft.from}
             to={draft.to}

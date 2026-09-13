@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { FormRow } from "@/components/ui/FormRow";
+import { DivisionField } from "@/components/ui/DivisionField";
 import {
   ACCOUNT_ROLES,
   ROLE_LABEL,
@@ -9,10 +10,8 @@ import {
   type AdminAccountInput,
 } from "@/lib/accounts/types";
 import { validateAdminAccount } from "@/lib/accounts/validation";
-import {
-  BUSINESS_DIVISIONS,
-  type BusinessDivisionId,
-} from "@/lib/businessDivisions";
+import { type BusinessDivisionId } from "@/lib/businessDivisions";
+import { useAuth } from "@/lib/auth";
 
 type AccountFormModalProps = {
   open: boolean;
@@ -65,6 +64,12 @@ export function AccountFormModal({
   const [resetMessage, setResetMessage] = useState("");
   const isEdit = account !== null;
 
+  // ★ 이 창의 account 는 **고칠 계정**입니다. 지금 로그인한 사람이 아닙니다.
+  //   이름이 겹치니 헷갈리지 않게 me 로 받습니다.
+  const { account: me } = useAuth();
+  // 총괄만 파트를 고릅니다. 나머지는 자기 파트로 고정입니다.
+  const myDivision = me !== null && me.role !== "superadmin" ? me.divisionId : undefined;
+
   // 창이 열릴 때 값을 채우고, 닫히면 비웁니다.
   useEffect(() => {
     setError("");
@@ -75,9 +80,12 @@ export function AccountFormModal({
       return;
     }
 
+  // ★ 총괄이 아니면 업무구분을 고를 수 없습니다. 내 파트로 채워 둡니다.
+  //   화면에는 읽기 전용으로 보이므로(DivisionField), 여기서 안 채우면
+  //   값이 빈 채로 남아 "업무구분을 선택해주세요" 에 걸려 등록이 안 됩니다.
     setDraft(
       account === null
-        ? EMPTY_DRAFT
+        ? { ...EMPTY_DRAFT, divisionId: myDivision ?? "" }
         : {
             loginId: account.loginId,
             name: account.name,
@@ -88,7 +96,7 @@ export function AccountFormModal({
           },
     );
     setResetMessage("");
-  }, [open, account]);
+  }, [open, account, myDivision]);
 
   const update = <K extends keyof DraftValues>(key: K, value: DraftValues[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -199,26 +207,12 @@ export function AccountFormModal({
             />
           </FormRow>
 
-          <FormRow required label="업무파트" htmlFor="acc-division">
-            <select
-              id="acc-division"
-              value={draft.divisionId}
-              onChange={(event) =>
-                update(
-                  "divisionId",
-                  event.currentTarget.value as BusinessDivisionId | "",
-                )
-              }
-              className="select w-full"
-            >
-              <option value="">선택해주세요</option>
-              {BUSINESS_DIVISIONS.map((division) => (
-                <option key={division.id} value={division.id}>
-                  {division.label}
-                </option>
-              ))}
-            </select>
-          </FormRow>
+          <DivisionField
+            label="업무파트"
+            id="acc-division"
+            value={draft.divisionId}
+            onChange={(next) => update("divisionId", next)}
+          />
 
           <FormRow required label="권한" htmlFor="acc-role">
             <select

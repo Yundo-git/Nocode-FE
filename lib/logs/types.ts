@@ -3,26 +3,23 @@ import type { BusinessDivisionId } from "@/lib/businessDivisions";
 // 로그 종류입니다.
 // 나중에 늘어날 수 있으므로 화면에서 직접 문자열을 비교하지 말고
 // 아래 LOG_TYPE_LABEL 을 거쳐 쓰세요.
+// ★ 감시 시작/중지는 여기 없습니다.
+//   사람이 한 일이라 **작업이력** 화면에 남습니다. (/audit)
+//   로그조회는 장비에 일어난 일만 봅니다.
 export type LogType =
   | "down" // 정상 -> 비정상
   | "up" // 비정상 -> 정상
-  | "ping-on" // 감시 시작
-  | "ping-off" // 감시 중지
   | "registered"; // 서버 등록
 
 export const LOG_TYPES: readonly LogType[] = [
   "down",
   "up",
-  "ping-on",
-  "ping-off",
   "registered",
 ];
 
 export const LOG_TYPE_LABEL: Record<LogType, string> = {
   down: "비정상 전환",
   up: "정상 복구",
-  "ping-on": "감시 시작",
-  "ping-off": "감시 중지",
   registered: "서버 등록",
 };
 
@@ -36,6 +33,10 @@ export type LogEntry = {
   readonly serverId: string;
   readonly serverIp: string;
   readonly serverNameKo: string;
+  /** 영문명입니다. 그 시점의 값이 복사돼 있습니다. */
+  readonly serverNameEn: string;
+  /** 보안장비 / 서버 구분입니다. 그 시점의 값입니다. */
+  readonly serverType: string;
   readonly divisionId: BusinessDivisionId;
   readonly type: LogType;
   /** 사람이 읽을 한 줄 설명입니다. 예: "응답 없음 (3회 연속)" */

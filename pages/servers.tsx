@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { canManageServers } from "@/lib/accounts/permissions";
 import { RequirePermission } from "@/components/auth/RequirePermission";
 import { ServerFilters } from "@/components/servers/ServerFilters";
+import { ServerImportModal } from "@/components/servers/ServerImportModal";
 import { ServerRegisterModal } from "@/components/servers/ServerRegisterModal";
 import { ServerTable } from "@/components/servers/ServerTable";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
@@ -34,8 +35,16 @@ export default function ServersPageRoute() {
 
 function ServersPage() {
   const { account } = useAuth();
-  const { addServer, updateServer, toggleEnabled, removeServers } =
-    useServerActions();
+  const {
+    addServer,
+    updateServer,
+    toggleEnabled,
+    removeServers,
+    downloadServers,
+    downloadTemplate,
+    downloading,
+    importServers,
+  } = useServerActions();
 
   // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
   // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireServerManager)
@@ -48,6 +57,7 @@ function ServersPage() {
   // 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
   const [failMessage, setFailMessage] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const table = useTableState<ServerFilterValues, Server>(
@@ -131,6 +141,14 @@ function ServersPage() {
     [addServer, updateServer, editing, table],
   );
 
+  // 내려받기가 잘렸거나 실패했을 때만 알립니다.
+  // 잘 받아졌으면 파일이 내려오는 것 자체가 신호라 따로 알리지 않습니다.
+  const handleDownload = useCallback(async () => {
+    const message = await downloadServers(table.filters);
+
+    if (message) setFailMessage(message);
+  }, [downloadServers, table.filters]);
+
   const handleDeleteSelected = useCallback(async () => {
     setBusy(true);
 
@@ -153,7 +171,11 @@ function ServersPage() {
         <title>서버관리 | PingCheck</title>
       </Head>
 
-      <div className="space-y-4 px-6 py-4">
+      {/* ★ 화면 높이에 맞춰 채웁니다. 페이지 전체가 스크롤되지 않게 하려는 것입니다.
+          표가 길어졌을 때 페이지가 통째로 내려가면 검색 조건과 쪽 번호가
+          화면 밖으로 밀려나, 다음 쪽으로 가려고 매번 끝까지 내려야 합니다.
+          아래 표 안쪽만 스크롤됩니다. (머리글은 sticky 로 붙어 있습니다) */}
+      <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "서버관리"]} title="서버관리" />
 
         {/* 검색 조건 */}
@@ -183,6 +205,9 @@ function ServersPage() {
               setRegisterOpen(true);
             }}
             onDeleteSelected={() => setConfirmDelete(true)}
+            onDownload={() => void handleDownload()}
+            downloading={downloading}
+            onImportClick={() => setImportOpen(true)}
             onRowClick={
               canManage
                 ? (server) => {
@@ -199,6 +224,18 @@ function ServersPage() {
           editing={editing}
           onClose={() => setRegisterOpen(false)}
           onSubmit={handleRegister}
+        />
+
+        <ServerImportModal
+          open={importOpen}
+          onClose={() => setImportOpen(false)}
+          onDownloadTemplate={downloadTemplate}
+          onSubmit={importServers}
+          // 새로 들어온 것이 맨 위에 오므로 첫 쪽으로 돌아갑니다.
+          onDone={() => {
+            table.setPage(1);
+            table.reload();
+          }}
         />
 
         <ConfirmModal

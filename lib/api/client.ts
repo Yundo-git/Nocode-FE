@@ -73,10 +73,17 @@ function readCsrfToken(): string {
 //   백엔드는 세션 확인은 그대로 하되 만료 기한은 밀지 않습니다.
 export type RequestOptions = { readonly background?: boolean };
 
-function buildHeaders(hasBody: boolean, options?: RequestOptions): HeadersInit {
+// 본문이 글이면 CSV 로 봅니다. (서버 일괄등록)
+// 파일 내용은 줄바꿈과 따옴표투성이라 JSON 으로 감쌌다 푸는 만큼 탈이 날 자리가
+// 늘어납니다. 본문에 그대로 싣고, 종류만 바꿔 알려 줍니다.
+function contentTypeOf(body: unknown): string {
+  return typeof body === "string" ? "text/csv; charset=utf-8" : "application/json";
+}
+
+function buildHeaders(body: unknown, options?: RequestOptions): HeadersInit {
   const headers: Record<string, string> = {};
 
-  if (hasBody) headers["Content-Type"] = "application/json";
+  if (body !== undefined) headers["Content-Type"] = contentTypeOf(body);
 
   const token = readCsrfToken();
   if (token !== "") headers["X-CSRF-Token"] = token;
@@ -95,8 +102,13 @@ async function request<T>(
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method,
-      headers: buildHeaders(body !== undefined, options),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: buildHeaders(body, options),
+      body:
+        body === undefined
+          ? undefined
+          : typeof body === "string"
+            ? body
+            : JSON.stringify(body),
       // 세션 쿠키를 실어 보냅니다. 없으면 로그인해도 매번 401 이 납니다.
       credentials: "include",
     });
@@ -130,6 +142,8 @@ export const api = {
   get: <T,>(path: string, options?: RequestOptions) =>
     request<T>("GET", path, undefined, options),
   post: <T,>(path: string, body: unknown) => request<T>("POST", path, body),
+  /** 파일 내용을 그대로 올립니다. (서버 일괄등록) */
+  postCsv: <T,>(path: string, text: string) => request<T>("POST", path, text),
   put: <T,>(path: string, body: unknown) => request<T>("PUT", path, body),
   patch: <T,>(path: string, body: unknown) => request<T>("PATCH", path, body),
   remove: <T,>(path: string) => request<T>("DELETE", path),

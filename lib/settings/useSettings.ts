@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import { DEFAULT_SETTINGS, type SystemSettings } from "@/lib/settings/types";
 
-// 시스템 설정을 읽고 바꿉니다.
+// 시스템 설정을 읽습니다. 바꾸는 길은 없습니다.
 //
-// 다른 사람이 바꿨을 수도 있어서 가끔 다시 읽습니다.
-// 작업 모드는 "끄는 것을 잊는" 것이 가장 위험해서, 화면이 늘 최신이어야 합니다.
+// 핑 주기·임계값·보관 기간입니다. 운영 중에 화면으로 바꿀 값이 아니라
+// DB 에서 직접 고칩니다. 그래도 가끔 다시 읽습니다 — 값이 바뀌면
+// 화면의 판정 기준(감시 멈춤·박동 선)이 함께 따라와야 하기 때문입니다.
 const REFRESH_MS = 30_000;
 
 export function useSettings() {
@@ -33,30 +34,5 @@ export function useSettings() {
     };
   }, []);
 
-  const setMaintenanceMode = useCallback(
-    async (on: boolean): Promise<string> => {
-      const before = settings;
-
-      // 누른 즉시 화면을 바꾸고, 실패하면 되돌립니다.
-      setSettings({ ...before, maintenanceMode: on });
-
-      // ★ 누가 켰는지는 보내지 않습니다.
-      //   백엔드가 세션에서 가져옵니다. 화면이 알려 준 이름을 믿으면
-      //   아무 이름이나 적어 보낼 수 있습니다.
-      const res = await api.patch<SystemSettings>("/settings", {
-        maintenanceMode: on,
-      });
-
-      if (!res.ok) {
-        setSettings(before);
-        return res.message;
-      }
-
-      setSettings(res.data);
-      return "";
-    },
-    [settings],
-  );
-
-  return { settings, ready, setMaintenanceMode };
+  return { settings, ready };
 }

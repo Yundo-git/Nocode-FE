@@ -62,7 +62,7 @@ export function SettingsPanel({
 
         <SettingRow
           label="알림 받기"
-          description="감시 중인 서버의 핑이 끊기면 알려 줍니다"
+          description="감시 중인 서버의 핑이 끊기면 소리로 알립니다 (대시보드의 알림 버튼과 같은 설정입니다)"
           checked={account.notifyEnabled}
           onChange={handleNotifyChange}
           toggleLabel="알림 받기"

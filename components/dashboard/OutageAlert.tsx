@@ -6,7 +6,7 @@ import type { ProblemServer } from "@/lib/dashboard/types";
 type OutageAlertProps = {
   /** 응답이 없는 서버들입니다. 비어 있지 않을 때만 이 화면이 뜹니다. */
   problems: readonly ProblemServer[];
-  /** 작업 모드면 깜빡임과 소리를 멈춥니다. */
+  /** 내 알림을 꺼 뒀으면 깜빡임을 멈춥니다. (사람마다 다릅니다) */
   muted: boolean;
   now: number;
 };
@@ -92,7 +92,7 @@ export function OutageAlert({ problems, muted, now }: OutageAlertProps) {
       ) : null}
 
       {muted ? (
-        <p className="text-bt-text-s text-muted">작업 모드 (알림 꺼짐)</p>
+        <p className="text-bt-text-s text-muted">내 알림 꺼짐</p>
       ) : acknowledged ? (
         <p className="text-bt-text-s text-muted">확인함</p>
       ) : (

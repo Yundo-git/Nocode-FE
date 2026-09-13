@@ -6,6 +6,7 @@ import {
 } from "@/lib/accounts/permissions";
 import {
   DashboardIcon,
+  HistoryIcon,
   LogIcon,
   ServerIcon,
   UserIcon,
@@ -40,6 +41,9 @@ const NAV_ITEMS: readonly NavItem[] = [
   { href: "/servers", label: "서버관리", Icon: ServerIcon, canSee: canManageServers },
   { href: "/accounts", label: "계정관리", Icon: UserIcon, canSee: canManageAccounts },
   { href: "/logs", label: "로그조회", Icon: LogIcon },
+  // 사람이 한 일입니다. 로그조회(장비 이력)와 다른 화면입니다.
+  // 누가 어느 PC 에서 드나들었는지가 담겨 관리자만 봅니다.
+  { href: "/audit", label: "작업이력", Icon: HistoryIcon, canSee: canManageAccounts },
 ] as const;
 
 /** 이 계정이 볼 수 있는 메뉴만 남깁니다. */

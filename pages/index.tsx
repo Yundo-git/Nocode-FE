@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
 import type { ResponsiveLayouts } from "react-grid-layout";
 import {
   DashboardGrid,
@@ -13,6 +14,7 @@ import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { SUMMARY_REFRESH_MS, staleAfterMs } from "@/lib/dashboard/types";
 import { useNow } from "@/lib/useNow";
 import { useSettings } from "@/lib/settings/useSettings";
+import { useAuth } from "@/lib/auth";
 
 // 상자를 옮긴 자리를 저장해 두는 칸 이름입니다.
 //
@@ -53,6 +55,9 @@ const DEFAULT_LAYOUTS: ResponsiveLayouts = {
 const HEADER_CLASS = `${DRAG_HANDLE_CLASS} cursor-move select-none`;
 
 export default function HomePage() {
+  const router = useRouter();
+  // 내 소리를 꺼 뒀으면 장애 알림도 깜빡이지 않습니다. (사람마다 다릅니다)
+  const { account } = useAuth();
   const { summary, status, reload } = useDashboardSummary();
   const { settings } = useSettings();
   // 지속 시간이 매초 늘어나 보이도록 지금 시각을 여기서 한 번만 셉니다.
@@ -76,6 +81,7 @@ export default function HomePage() {
             // WIDE_LAYOUT 의 h 를 바꾸면 이 값도 함께 바꿔야 합니다.
             fitRows={10}
             toolbarLeft={<MaintenanceToggle />}
+            onTvMode={() => void router.push("/tv")}
           >
             {/* 각 자식의 key 가 위 배치의 i 와 짝이 맞아야 합니다.
                 Panel 을 바로 두지 않고 div 로 한 번 감싸는 이유는,
@@ -119,7 +125,7 @@ export default function HomePage() {
               >
                 <ClockOrAlert
                   problems={summary.problems}
-                  muted={settings.maintenanceMode}
+                  muted={account?.notifyEnabled === false}
                   now={now}
                 />
               </Panel>
@@ -130,12 +136,8 @@ export default function HomePage() {
                 className="h-full"
                 headerClassName={HEADER_CLASS}
                 bodyClassName="overflow-auto"
-                title="실시간 로그"
-                footer={
-                  <span className="text-b2_body_r text-muted">
-                    마지막 갱신 --:--
-                  </span>
-                }
+                title="실시간 확인 결과"
+                description={`${SUMMARY_REFRESH_MS / 1000}초 갱신`}
               >
                 <RecentLogs />
               </Panel>

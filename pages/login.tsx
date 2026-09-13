@@ -4,6 +4,7 @@ import { ColorMode } from "@/components/ui/ColorMode";
 import { LockIcon, UserIcon } from "@/components/ui/icons";
 import { useAuth } from "@/lib/auth";
 import { PasswordSetupModal } from "@/components/auth/PasswordSetupModal";
+import { Signature } from "@/components/ui/Signature";
 
 // "아이디 저장"에 체크했을 때 아이디를 담아 두는 자리입니다.
 const SAVED_ID_KEY = "nocode-saved-id";
@@ -206,9 +207,7 @@ export default function LoginPage() {
           <p className="text-d-label font-exbold uppercase tracking-widest text-primary-500">
             PingCheck
           </p>
-          <p className="mt-1 text-d-label uppercase text-muted">
-            Copyright © 2026 ydh. All rights reserved.
-          </p>
+          <Signature />
         </div>
 
         {/* 처음 로그인하는 계정이면 비밀번호를 정하는 창이 뜹니다.

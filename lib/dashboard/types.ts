@@ -22,11 +22,13 @@ export type ProblemServer = {
 export type StateCounts = {
   readonly online: number;
   readonly offline: number;
+  /** 감시는 켜져 있는데 아직 확정 못 한 장비입니다. (주황) */
+  readonly pending: number;
   readonly disabled: number;
   readonly total: number;
 };
 
-// 방화벽 / 서버처럼 장비 종류별 집계입니다.
+// 보안장비 / 서버처럼 장비 종류별 집계입니다.
 //
 // 업무구분(사법·등기…)이 아니라 종류로 나누는 이유:
 // 계정은 자기 파트의 장비만 봅니다. 그래서 업무구분으로 나누면
@@ -48,6 +50,13 @@ export type DashboardSummary = {
    * 모니터링에서 가장 위험한 상황이라 따로 내려보냅니다.
    */
   readonly lastCheckedAt: string | null;
+  /**
+   * 핑 주기(초)입니다. 서버가 알려 줍니다.
+   *
+   * 화면이 **다시 받아 올 시각을 맞추는 데** 씁니다.
+   * lastCheckedAt + 이 값 = 다음 핑이 도는 시각입니다.
+   */
+  readonly pingIntervalSec: number;
   /** 오늘 0시부터 지금까지 비정상으로 바뀐 횟수입니다. */
   readonly todayDownCount: number;
   /** 손봐야 할 장비입니다. 비정상이 앞, 미연결이 뒤입니다. */

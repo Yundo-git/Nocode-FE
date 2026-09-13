@@ -54,7 +54,7 @@ export function HealthDonut({ label, counts, stale = false }: HealthDonutProps) 
           aria-label={
             empty
               ? `${label} 등록된 장비 없음`
-              : `${label} 전체 ${counts.total}대 · 정상 ${counts.online} · 비정상 ${counts.offline} · 미연결 ${counts.disabled}`
+              : `${label} 전체 ${counts.total}대 · 정상 ${counts.online} · 비정상 ${counts.offline} · 확인 중 ${counts.pending} · 미연결 ${counts.disabled}`
           }
         >
           {/* 12시 방향에서 시작하도록 원만 돌립니다.
@@ -150,6 +150,11 @@ export function HealthDonut({ label, counts, stale = false }: HealthDonutProps) 
             tone={counts.offline > 0 ? "down" : "muted"}
           />
           <Stat
+            label="확인 중"
+            value={counts.pending}
+            tone={counts.pending > 0 ? "pending" : "muted"}
+          />
+          <Stat
             label="미연결"
             value={counts.disabled}
             tone={counts.disabled > 0 ? "unknown" : "muted"}
@@ -176,6 +181,7 @@ function buildSegments(counts: StateCounts): Segment[] {
   const parts = [
     { key: "online", value: counts.online, className: "stroke-up-500" },
     { key: "offline", value: counts.offline, className: "stroke-down-500" },
+    { key: "pending", value: counts.pending, className: "stroke-pending-500" },
     { key: "disabled", value: counts.disabled, className: "stroke-unknown-500" },
   ];
 
@@ -200,6 +206,7 @@ function buildSegments(counts: StateCounts): Segment[] {
 const TONE_CLASS = {
   up: "text-up-500",
   down: "text-down-500",
+  pending: "text-pending-500",
   unknown: "text-unknown-500",
   muted: "text-secondary",
 } as const;
