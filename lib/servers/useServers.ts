@@ -1,124 +1,130 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { api } from "@/lib/api/client";
+import type { PageResult } from "@/lib/useTableState";
 import type {
   AddServerResult,
   NewServerInput,
   Server,
+  ServerFilterValues,
 } from "@/lib/servers/types";
 
-export type LoadStatus = "loading" | "ready" | "error";
-
-// 목록은 서버의 data/servers.json 에 있습니다.
-// 브라우저 저장소가 아니라서 다른 PC 에서 접속해도 같은 목록이 보이고,
-// 로그아웃하거나 새로고침해도 남습니다.
+// 장비 목록은 DB 에 있습니다.
 //
-// 나중에 실제 DB 를 붙일 때는 API 라우트(pages/api/servers) 안만 바꾸면 되고,
-// 아래 화면 코드는 그대로 둘 수 있습니다.
-export async function fetchServers(): Promise<readonly Server[]> {
-  const res = await api.get<Server[]>("/servers");
+// ★ 거르기·쪽 나누기를 서버가 합니다. 전체를 받지 않습니다. (NOTES.md 4-11)
+//   장비가 1,000대여도 화면이 받는 양은 한 쪽 분량 그대로입니다.
 
-  if (!res.ok) {
-    throw new Error(res.message);
-  }
+/** 검색 조건과 쪽 번호를 주소 문자열로 만듭니다. */
+function toQuery(
+  filters: ServerFilterValues,
+  page: number,
+  pageSize: number,
+): string {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+
+  // 빈 값은 보내지 않습니다. 서버에서 "조건 없음" 과 같지만 주소가 지저분해집니다.
+  if (filters.keyword.trim()) params.set("keyword", filters.keyword.trim());
+  if (filters.type) params.set("type", filters.type);
+  if (filters.divisionId) params.set("divisionId", filters.divisionId);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+
+  return params.toString();
+}
+
+/** 한 쪽을 받아 옵니다. useTableState 에 넘깁니다. */
+export async function fetchServerPage(
+  filters: ServerFilterValues,
+  page: number,
+  pageSize: number,
+): Promise<PageResult<Server>> {
+  const res = await api.get<PageResult<Server>>(
+    `/servers?${toQuery(filters, page, pageSize)}`,
+  );
+
+  if (!res.ok) throw new Error(res.message);
 
   return res.data;
 }
 
-// 화면에서 쓰는 서버 목록 상태입니다.
-export function useServers() {
-  const [servers, setServers] = useState<readonly Server[]>([]);
-  const [status, setStatus] = useState<LoadStatus>("loading");
-
-  // 화면에서 "새로고침" 을 눌렀을 때 다시 받아 옵니다.
-  const reload = useCallback(async () => {
-    setStatus("loading");
-
-    try {
-      setServers(await fetchServers());
-      setStatus("ready");
-    } catch {
-      setStatus("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-
-    fetchServers()
-      .then((next) => {
-        // 이미 화면을 벗어났으면 상태를 건드리지 않습니다.
-        if (!alive) return;
-        setServers(next);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!alive) return;
-        setStatus("error");
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  // 서버를 한 대 등록합니다.
-  // 중복 IP 검사는 API 가 합니다. 브라우저에서만 검사하면
-  // 두 사람이 동시에 같은 IP 를 넣을 때 막지 못합니다.
+/**
+ * 장비를 만들고 고치고 지웁니다.
+ *
+ * 목록 상태는 useTableState 가 들고 있으므로, 여기서는 **요청만** 보냅니다.
+ * 끝나면 부르는 쪽이 reload() 로 지금 쪽을 다시 받습니다.
+ *
+ * ★ 화면에서 목록을 직접 고치지 않는 이유
+ *   쪽 나누기를 서버가 하기 때문에, 한 대를 지우면 다음 쪽의 첫 줄이
+ *   이 쪽으로 올라와야 합니다. 브라우저가 그것을 알 수 없습니다.
+ */
+export function useServerActions() {
   const addServer = useCallback(
     async (input: NewServerInput): Promise<AddServerResult> => {
       const res = await api.post<Server>("/servers", input);
 
       if (!res.ok) {
-        // 409 는 "이미 있는 IP" 라는 뜻입니다. (pages/api/servers/index.ts)
+        // 409 는 "이미 있는 IP" 라는 뜻입니다.
         return {
           ok: false,
           reason: res.status === 409 ? "duplicate-ip" : "request-failed",
         };
       }
 
-      setServers((prev) => [res.data, ...prev]);
       return { ok: true };
     },
     [],
   );
 
-  // 목록의 토글은 "핑을 쏠지" 를 정합니다.
-  // 누른 즉시 화면을 바꿔 반응이 바로 보이게 하고,
-  // 저장에 실패하면 원래대로 되돌립니다.
-  const toggleEnabled = useCallback(
-    async (id: string) => {
-      const target = servers.find((server) => server.id === id);
+  const updateServer = useCallback(
+    async (id: string, input: NewServerInput): Promise<AddServerResult> => {
+      const res = await api.put<Server>(`/servers/${id}`, input);
 
-      if (target === undefined) {
-        return;
+      if (!res.ok) {
+        return {
+          ok: false,
+          reason: res.status === 409 ? "duplicate-ip" : "request-failed",
+        };
       }
 
-      const next = !target.enabled;
-
-      setServers((prev) =>
-        prev.map((server) =>
-          server.id === id ? { ...server, enabled: next } : server,
-        ),
-      );
-
-      const res = await api.patch<Server>(`/servers/${id}`, { enabled: next });
-
-      if (res.ok) {
-        setServers((prev) =>
-          prev.map((server) => (server.id === id ? res.data : server)),
-        );
-        return;
-      }
-
-      // 저장에 실패했으니 눌렀던 것을 되돌립니다.
-      setServers((prev) =>
-        prev.map((server) =>
-          server.id === id ? { ...server, enabled: !next } : server,
-        ),
-      );
+      return { ok: true };
     },
-    [servers],
+    [],
   );
 
-  return { servers, status, reload, addServer, toggleEnabled };
+  /** 사용여부(핑을 쏠지)를 켜고 끕니다. 성공하면 빈 문자열입니다. */
+  const toggleEnabled = useCallback(
+    async (id: string, next: boolean): Promise<string> => {
+      const res = await api.patch<Server>(`/servers/${id}`, { enabled: next });
+
+      return res.ok ? "" : res.message;
+    },
+    [],
+  );
+
+  const removeServers = useCallback(
+    async (ids: readonly string[]): Promise<{ removed: number; message: string }> => {
+      const res = await api.post<{
+        removed: string[];
+        failed: { id: string; reason: string }[];
+      }>("/servers/bulk-delete", { ids });
+
+      if (!res.ok) return { removed: 0, message: res.message };
+
+      const failed = res.data.failed;
+
+      return {
+        removed: res.data.removed.length,
+        message:
+          failed.length === 0
+            ? ""
+            : `${failed.length}대를 지우지 못했습니다. (${failed[0]?.reason ?? ""})`,
+      };
+    },
+    [],
+  );
+
+  return { addServer, updateServer, toggleEnabled, removeServers };
 }

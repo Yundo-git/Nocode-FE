@@ -129,6 +129,19 @@
     background-color: var(--primary-700);
   }
 
+  /* 되돌릴 수 없는 일(삭제)에 씁니다.
+     빨강을 쓰는 것은 눈에 띄라고가 아니라, 다른 버튼과 **손이 기억하는 위치가
+     같아도** 색으로 한 번 더 멈추게 하려는 것입니다.
+     --down-500 은 블랙 모드에서도 다시 정의돼 있어 그대로 씁니다. */
+  .btn-danger {
+    background-color: var(--down-500);
+    color: #ffffff;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
+
   .btn-ghost {
     color: var(--text-secondary);
     background-color: var(--panel);

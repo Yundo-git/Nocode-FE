@@ -27,7 +27,8 @@ export function useServerClock() {
 
   const sync = useCallback(async () => {
     const sentAt = Date.now();
-    const res = await api.get<TimeResponse>("/time");
+    // 1분마다 스스로 보내는 요청입니다. 로그인 기한을 밀지 않습니다.
+    const res = await api.get<TimeResponse>("/time", { background: true });
     const receivedAt = Date.now();
 
     if (!res.ok) {

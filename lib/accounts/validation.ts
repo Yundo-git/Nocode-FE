@@ -27,6 +27,17 @@ export function validateMyProfile(input: MyProfileInput): string {
   return "";
 }
 
+/**
+ * 새 비밀번호 규칙입니다. 백엔드의 validateNewPassword 와 같아야 합니다.
+ * (pingcheck-be/src/modules/accounts/account.validation.ts)
+ */
+export function validateNewPassword(password: string): string {
+  if (!password) return "새 비밀번호를 입력해주세요.";
+  if (password.length < 8) return "새 비밀번호는 8자 이상이어야 합니다.";
+
+  return "";
+}
+
 // 비밀번호 변경 검사입니다.
 export function validatePasswordChange(
   currentPassword: string,

@@ -50,6 +50,13 @@ type ServerTableProps = {
   onToggleEnabled: (id: string) => void;
   /** 등록 버튼을 눌렀을 때. 창을 여는 일은 페이지가 맡습니다. */
   onRegisterClick: () => void;
+  /** 고른 장비를 지웁니다. 되묻는 창은 페이지가 띄웁니다. */
+  onDeleteSelected: () => void;
+  /**
+   * 줄을 누르면 수정 창이 열립니다.
+   * 권한이 없으면 undefined 가 와서 눌리지 않습니다.
+   */
+  onRowClick?: (server: Server) => void;
 };
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
@@ -68,6 +75,8 @@ export function ServerTable({
   onClearSelection,
   onToggleEnabled,
   onRegisterClick,
+  onDeleteSelected,
+  onRowClick,
 }: ServerTableProps) {
   // 방금 등록된 줄을 잠깐 표시해 줍니다.
   // "내가 한 것이 반영됐다" 를 보여 주는 용도라, 처음 목록에는 쓰지 않습니다.
@@ -117,10 +126,12 @@ export function ServerTable({
           </button>
           <button
             type="button"
+            onClick={onDeleteSelected}
             disabled={selectedIds.size === 0}
             className="btn btn-ghost btn-sm"
           >
             선택삭제
+            {selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
           </button>
         </div>
 
@@ -217,9 +228,13 @@ export function ServerTable({
               rows.map((server) => (
                 <tr
                   key={server.id}
-                  className={freshIds.has(server.id) ? "animate-flash" : ""}
+                  onClick={onRowClick ? () => onRowClick(server) : undefined}
+                  className={`${freshIds.has(server.id) ? "animate-flash" : ""} ${
+                    onRowClick ? "cursor-pointer hover:bg-row-hover" : ""
+                  }`}
                 >
-                  <td className="center">
+                  {/* 체크박스와 토글은 줄 클릭(수정 창)과 겹치지 않게 막습니다. */}
+                  <td className="center" onClick={(event) => event.stopPropagation()}>
                     <input
                       type="checkbox"
                       aria-label={`${server.nameKo} 선택`}
@@ -240,7 +255,7 @@ export function ServerTable({
                     {server.responseMs === null ? "-" : server.responseMs}
                   </td>
                   <td>{formatDateTime(server.checkedAt)}</td>
-                  <td className="center">
+                  <td className="center" onClick={(event) => event.stopPropagation()}>
                     <Toggle
                       checked={server.enabled}
                       onChange={() => onToggleEnabled(server.id)}

@@ -40,6 +40,12 @@ export type Account = {
    * 나중에 메일·문자 같은 다른 통로가 생겨도 같은 값을 씁니다.
    */
   readonly notifyEnabled: boolean;
+  /**
+   * 로그인을 유지할 시간(분)입니다. null 이면 영구입니다.
+   *
+   * 사람마다 자리가 달라 계정에 둡니다. 다른 PC 로 로그인해도 따라옵니다.
+   */
+  readonly sessionTtlMinutes: number | null;
   readonly createdAt: string;
 };
 

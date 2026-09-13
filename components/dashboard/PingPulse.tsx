@@ -1,10 +1,16 @@
-import { EXPECTED_PING_INTERVAL_MS } from "@/lib/dashboard/types";
-
 type PingPulseProps = {
   /** 마지막으로 장비를 확인한 시각입니다. */
   lastCheckedAt: string | null;
   now: number;
   stale: boolean;
+  /**
+   * 핑 주기(ms)입니다. 서버가 알려 준 값입니다.
+   *
+   * ★ 화면에 숫자를 적어 두지 않습니다.
+   *   실제 주기와 어긋나면 이 선이 엉뚱한 속도로 차올라,
+   *   "핑이 도는지" 를 눈으로 판단하는 기능 자체가 거짓말이 됩니다.
+   */
+  pingIntervalMs: number;
 };
 
 // 핑이 돌고 있다는 것을 보여 주는 가는 선입니다.
@@ -17,14 +23,19 @@ type PingPulseProps = {
 //
 // 이 화면에서 상시 움직여도 되는 유일한 요소입니다.
 // 다른 곳의 움직임은 "무언가 바뀌었을 때" 에만 일어납니다.
-export function PingPulse({ lastCheckedAt, now, stale }: PingPulseProps) {
+export function PingPulse({
+  lastCheckedAt,
+  now,
+  stale,
+  pingIntervalMs,
+}: PingPulseProps) {
   if (lastCheckedAt === null) {
     return null;
   }
 
   const elapsed = now - new Date(lastCheckedAt).getTime();
   // 주기를 넘기면 100% 에서 멈춥니다. 넘쳐 흐르게 두면 뜻이 흐려집니다.
-  const ratio = Math.min(1, Math.max(0, elapsed / EXPECTED_PING_INTERVAL_MS));
+  const ratio = Math.min(1, Math.max(0, elapsed / pingIntervalMs));
 
   return (
     <div

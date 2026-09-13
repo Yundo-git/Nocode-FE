@@ -56,6 +56,13 @@ export type LogQuery = {
   readonly to: string;
   /** 특정 장비만 볼 때 씁니다. 빈 문자열이면 전체입니다. */
   readonly serverId: string;
+  /**
+   * 장비 이름이나 IP 로 찾습니다. (서버관리의 "서버명 · IP" 와 같은 방식)
+   *
+   * 로그에는 그 시점의 이름과 IP 가 적혀 있어, 장비 이름을 바꿔도
+   * 예전 이름으로 과거 기록을 찾을 수 있습니다.
+   */
+  readonly keyword: string;
   readonly type: LogType | "";
   readonly divisionId: BusinessDivisionId | "";
 };
@@ -66,6 +73,7 @@ export const EMPTY_LOG_QUERY: LogQuery = {
   from: "",
   to: "",
   serverId: "",
+  keyword: "",
   type: "",
   divisionId: "",
 };

@@ -19,6 +19,31 @@ export type ApiResult<T> =
   | { readonly ok: true; readonly data: T }
   | { readonly ok: false; readonly status: number; readonly message: string };
 
+// ── 세션이 끊겼을 때 ────────────────────────────────────────────────────
+//
+// ★ 이것이 없으면 무슨 일이 일어나는가
+//   세션이 만료되면 모든 요청이 401 로 돌아옵니다. 화면은 그것을 그냥
+//   "불러오지 못했습니다" 로 보여 줍니다. 사람은 왜 안 되는지 모른 채
+//   새로고침만 반복하게 됩니다.
+//
+//   여기서 한 번에 알아채고 로그인 화면으로 보냅니다.
+//
+// 로그인 상태를 아는 곳(AuthProvider)이 이 자리를 채웁니다.
+// client.ts 가 auth.tsx 를 직접 부르면 서로 물고 물리는 import 가 됩니다.
+type UnauthorizedHandler = () => void;
+
+let onUnauthorized: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  onUnauthorized = handler;
+}
+
+// 로그인 관련 주소는 제외합니다.
+// 로그인 실패(401)로 로그인 화면에 보내 봐야 이미 거기 있습니다.
+function isAuthProbe(path: string): boolean {
+  return path.startsWith("/auth/");
+}
+
 // ── CSRF 토큰 ───────────────────────────────────────────────────────────
 //
 // 백엔드가 pingcheck_csrf 쿠키를 심어 줍니다.
@@ -38,13 +63,25 @@ function readCsrfToken(): string {
   return found === undefined ? "" : decodeURIComponent(found.slice(CSRF_COOKIE.length + 1));
 }
 
-function buildHeaders(hasBody: boolean): HeadersInit {
+// ── 주기 요청 표시 ──────────────────────────────────────────────────────
+//
+// ★ 대시보드는 15초마다 스스로 서버에 물어봅니다.
+//   그 요청까지 "사람의 활동" 으로 치면, 화면을 띄워만 둬도 로그인이
+//   영원히 유지됩니다. "30분 뒤 자동 로그아웃" 을 골라도 소용이 없습니다.
+//
+//   그래서 화면이 스스로 보내는 요청에는 이 표시를 답니다.
+//   백엔드는 세션 확인은 그대로 하되 만료 기한은 밀지 않습니다.
+export type RequestOptions = { readonly background?: boolean };
+
+function buildHeaders(hasBody: boolean, options?: RequestOptions): HeadersInit {
   const headers: Record<string, string> = {};
 
   if (hasBody) headers["Content-Type"] = "application/json";
 
   const token = readCsrfToken();
   if (token !== "") headers["X-CSRF-Token"] = token;
+
+  if (options?.background === true) headers["X-Background"] = "1";
 
   return headers;
 }
@@ -53,11 +90,12 @@ async function request<T>(
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
+  options?: RequestOptions,
 ): Promise<ApiResult<T>> {
   try {
     const res = await fetch(`${API_BASE}${path}`, {
       method,
-      headers: buildHeaders(body !== undefined),
+      headers: buildHeaders(body !== undefined, options),
       body: body === undefined ? undefined : JSON.stringify(body),
       // 세션 쿠키를 실어 보냅니다. 없으면 로그인해도 매번 401 이 납니다.
       credentials: "include",
@@ -73,6 +111,11 @@ async function request<T>(
           ? String((data as { message: unknown }).message)
           : "요청을 처리하지 못했습니다.";
 
+      // 세션이 끊겼습니다. 화면 전체를 로그인 상태로 되돌립니다.
+      if (res.status === 401 && !isAuthProbe(path)) {
+        onUnauthorized?.();
+      }
+
       return { ok: false, status: res.status, message };
     }
 
@@ -84,7 +127,8 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T,>(path: string) => request<T>("GET", path),
+  get: <T,>(path: string, options?: RequestOptions) =>
+    request<T>("GET", path, undefined, options),
   post: <T,>(path: string, body: unknown) => request<T>("POST", path, body),
   put: <T,>(path: string, body: unknown) => request<T>("PUT", path, body),
   patch: <T,>(path: string, body: unknown) => request<T>("PATCH", path, body),
@@ -100,5 +144,5 @@ export const api = {
 export async function ensureCsrfToken(): Promise<void> {
   if (readCsrfToken() !== "") return;
 
-  await request("GET", "/time");
+  await request("GET", "/time", undefined, { background: true });
 }

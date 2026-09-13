@@ -1,103 +1,94 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { api } from "@/lib/api/client";
+import type { PageResult } from "@/lib/useTableState";
 import type {
   Account,
+  AccountFilterValues,
   AccountWriteResult,
   AdminAccountInput,
   MyProfileInput,
 } from "@/lib/accounts/types";
 import { useAuth } from "@/lib/auth";
 
-export type LoadStatus = "loading" | "ready" | "error";
+/** 검색 조건과 쪽 번호를 주소 문자열로 만듭니다. */
+function toQuery(
+  filters: AccountFilterValues,
+  page: number,
+  pageSize: number,
+): string {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
 
-export async function fetchAccounts(): Promise<readonly Account[]> {
-  const res = await api.get<Account[]>("/accounts");
+  if (filters.keyword.trim()) params.set("keyword", filters.keyword.trim());
+  if (filters.divisionId) params.set("divisionId", filters.divisionId);
+  if (filters.role) params.set("role", filters.role);
+  if (filters.enabled) params.set("enabled", filters.enabled);
 
-  if (!res.ok) {
-    throw new Error(res.message);
-  }
+  return params.toString();
+}
+
+/**
+ * 한 쪽을 받아 옵니다. useTableState 에 넘깁니다.
+ *
+ * ★ 거르기·쪽 나누기를 서버가 합니다. 전체를 받지 않습니다.
+ */
+export async function fetchAccountPage(
+  filters: AccountFilterValues,
+  page: number,
+  pageSize: number,
+): Promise<PageResult<Account>> {
+  const res = await api.get<PageResult<Account>>(
+    `/accounts?${toQuery(filters, page, pageSize)}`,
+  );
+
+  if (!res.ok) throw new Error(res.message);
 
   return res.data;
 }
 
-// 계정 목록 상태입니다. 구조는 useServers 와 같습니다.
-export function useAccounts() {
-  const [accounts, setAccounts] = useState<readonly Account[]>([]);
-  const [status, setStatus] = useState<LoadStatus>("loading");
-
-  useEffect(() => {
-    let alive = true;
-
-    fetchAccounts()
-      .then((next) => {
-        if (!alive) return;
-        setAccounts(next);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!alive) return;
-        setStatus("error");
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  // 누른 즉시 화면을 바꾸고, 저장이 실패하면 되돌립니다.
-  const toggleEnabled = useCallback(
-    async (id: string) => {
-      const target = accounts.find((account) => account.id === id);
-
-      if (target === undefined) return;
-
-      const next = !target.enabled;
-
-      setAccounts((prev) =>
-        prev.map((account) =>
-          account.id === id ? { ...account, enabled: next } : account,
-        ),
-      );
-
+/**
+ * 계정을 만들고 고치고 지웁니다.
+ *
+ * 목록 상태는 useTableState 가 들고 있으므로 여기서는 요청만 보냅니다.
+ * 끝나면 부르는 쪽이 reload() 로 지금 쪽을 다시 받습니다.
+ */
+export function useAccountActions() {
+  const setEnabled = useCallback(
+    async (id: string, next: boolean): Promise<string> => {
       const res = await api.patch<Account>(`/accounts/${id}`, { enabled: next });
 
-      if (res.ok) {
-        setAccounts((prev) =>
-          prev.map((account) => (account.id === id ? res.data : account)),
-        );
-        return;
-      }
-
-      // 저장에 실패했으니 눌렀던 것을 되돌립니다.
-      setAccounts((prev) =>
-        prev.map((account) =>
-          account.id === id ? { ...account, enabled: !next } : account,
-        ),
-      );
+      return res.ok ? "" : res.message;
     },
-    [accounts],
+    [],
   );
 
-  // 관리자가 계정을 새로 만듭니다.
   const createAccount = useCallback(
-    async (input: AdminAccountInput): Promise<AccountWriteResult> => {
-      const res = await api.post<Account>("/accounts", input);
+    async (
+      input: AdminAccountInput,
+      password: string,
+    ): Promise<AccountWriteResult> => {
+      // 비밀번호를 비워 두면 보내지 않습니다.
+      // 백엔드는 없으면 "아직 정하지 않음"(NULL)으로 만들고,
+      // 그 계정은 로그인할 수 없습니다.
+      const res = await api.post<Account>("/accounts", {
+        ...input,
+        ...(password === "" ? {} : { password }),
+      });
 
       if (!res.ok) {
-        // 409 는 "이미 쓰는 아이디" 라는 뜻입니다.
         return {
           ok: false,
           reason: res.status === 409 ? "duplicate-login-id" : "not-found",
         };
       }
 
-      setAccounts((prev) => [res.data, ...prev]);
       return { ok: true, account: res.data };
     },
     [],
   );
 
-  // 관리자가 계정을 고칩니다.
   const updateAccount = useCallback(
     async (id: string, input: AdminAccountInput): Promise<AccountWriteResult> => {
       const res = await api.put<Account>(`/accounts/${id}`, input);
@@ -109,33 +100,37 @@ export function useAccounts() {
         };
       }
 
-      setAccounts((prev) =>
-        prev.map((account) => (account.id === id ? res.data : account)),
-      );
       return { ok: true, account: res.data };
     },
     [],
   );
 
-  // 계정을 지웁니다. 성공하면 빈 문자열, 실패하면 이유를 돌려줍니다.
+  /** 지웁니다. 성공하면 빈 문자열, 실패하면 이유를 돌려줍니다. */
   const removeAccount = useCallback(async (id: string): Promise<string> => {
     const res = await api.remove<null>(`/accounts/${id}`);
 
-    if (!res.ok) {
-      return res.message;
-    }
-
-    setAccounts((prev) => prev.filter((account) => account.id !== id));
-    return "";
+    return res.ok ? "" : res.message;
   }, []);
 
+  /**
+   * 관리자가 비밀번호를 다시 정해 줍니다.
+   * 그 계정의 기존 로그인은 백엔드가 모두 끊습니다.
+   */
+  const resetPassword = useCallback(
+    async (id: string, newPassword: string): Promise<string> => {
+      const res = await api.put<null>(`/accounts/${id}/password`, { newPassword });
+
+      return res.ok ? "" : res.message;
+    },
+    [],
+  );
+
   return {
-    accounts,
-    status,
-    toggleEnabled,
+    setEnabled,
     createAccount,
     updateAccount,
     removeAccount,
+    resetPassword,
   };
 }
 
@@ -150,7 +145,7 @@ export function useMyAccount() {
   const { account, status: authStatus, refresh } = useAuth();
   const [saving, setSaving] = useState(false);
 
-  const status: LoadStatus =
+  const status: "loading" | "ready" | "error" =
     authStatus === "loading" ? "loading" : account === null ? "error" : "ready";
 
   // 알림 받기를 켜고 끕니다.
@@ -217,5 +212,40 @@ export function useMyAccount() {
     [],
   );
 
-  return { account, status, saving, saveProfile, setNotifyEnabled, changePassword };
+  /**
+   * 로그인 유지 시간을 바꿉니다. null 이면 영구입니다.
+   *
+   * 바꾸는 즉시 지금 세션에도 적용됩니다. (백엔드가 기한을 다시 계산합니다)
+   */
+  const setSessionTtl = useCallback(
+    async (next: number | null): Promise<string> => {
+      if (account === null) return "계정을 찾을 수 없습니다.";
+
+      const before = account;
+      refresh({ ...before, sessionTtlMinutes: next });
+
+      const res = await api.patch<Account>("/accounts/me/session-ttl", {
+        sessionTtlMinutes: next,
+      });
+
+      if (!res.ok) {
+        refresh(before);
+        return res.message;
+      }
+
+      refresh(res.data);
+      return "";
+    },
+    [account, refresh],
+  );
+
+  return {
+    account,
+    status,
+    saving,
+    saveProfile,
+    setNotifyEnabled,
+    changePassword,
+    setSessionTtl,
+  };
 }

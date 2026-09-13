@@ -24,7 +24,10 @@ export function useDashboardSummary() {
   const [status, setStatus] = useState<SummaryStatus>("loading");
 
   const load = useCallback(async () => {
-    const res = await api.get<DashboardSummary>("/dashboard/summary");
+    // 화면이 스스로 15초마다 보내는 요청입니다. 로그인 기한을 밀지 않습니다.
+    const res = await api.get<DashboardSummary>("/dashboard/summary", {
+      background: true,
+    });
 
     if (!res.ok) {
       setStatus("error");

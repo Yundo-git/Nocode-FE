@@ -25,8 +25,9 @@ export type SystemSettings = {
   /**
    * 핑 주기입니다.
    *
-   * ★ 이 값을 바꾸면 lib/dashboard/types.ts 의 EXPECTED_PING_INTERVAL_MS 도
-   *   같이 맞춰야 합니다. (NOTES.md 4-15)
+   * ★ 대시보드의 "감시 멈춤" 판정과 박동 선이 **이 값을 그대로 씁니다.**
+   *   화면에 따로 적어 두지 않으므로, 여기만 바꾸면 전부 따라옵니다.
+   *   (전에는 화면에 60초라고 적혀 있어 실제 15초와 어긋나 있었습니다)
    */
   readonly pingIntervalSec: number;
   /** 연속 몇 번 실패해야 비정상으로 볼지입니다. */

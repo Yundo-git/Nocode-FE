@@ -4,13 +4,20 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { formatAgo } from "@/lib/dashboard/duration";
 import type { CSSProperties } from "react";
 import { useFlashOnChange } from "@/lib/useFlashOnChange";
-import { STALE_AFTER_MS, type DashboardSummary } from "@/lib/dashboard/types";
+import type { DashboardSummary } from "@/lib/dashboard/types";
 
 type ServerStatusPanelProps = {
   summary: DashboardSummary;
   loading: boolean;
   /** 매초 바뀌는 지금 시각입니다. */
   now: number;
+  /**
+   * 마지막 확인이 이보다 오래되면 "감시 멈춤" 으로 봅니다.
+   * 서버가 알려 준 핑 주기로 계산한 값입니다. (lib/dashboard/types.ts)
+   */
+  staleAfterMs: number;
+  /** 핑 주기(ms)입니다. 박동 선이 차오르는 속도에 씁니다. */
+  pingIntervalMs: number;
 };
 
 // 대시보드의 서버 상태입니다.
@@ -26,6 +33,8 @@ export function ServerStatusPanel({
   summary,
   loading,
   now,
+  staleAfterMs,
+  pingIntervalMs,
 }: ServerStatusPanelProps) {
   // 훅은 늘 같은 순서로 불려야 해서, 아래 early return 보다 위에 둡니다.
   // 건수가 바뀐 순간에만 한 번 번쩍입니다.
@@ -58,7 +67,7 @@ export function ServerStatusPanel({
   // 그때 화면은 마지막 상태를 그대로 보여 주기 때문에 전부 "정상" 으로 보입니다.
   const stale =
     lastCheckedAt !== null &&
-    now - new Date(lastCheckedAt).getTime() > STALE_AFTER_MS;
+    now - new Date(lastCheckedAt).getTime() > staleAfterMs;
 
   return (
     <div className="flex h-full min-w-0 flex-col justify-center gap-4">
@@ -88,7 +97,8 @@ export function ServerStatusPanel({
           </span>
 
           {/* 핑이 도는 박자입니다. 멈추면 선이 가득 찬 채 서 있습니다. */}
-          <PingPulse lastCheckedAt={lastCheckedAt} now={now} stale={stale} />
+          <PingPulse
+            pingIntervalMs={pingIntervalMs} lastCheckedAt={lastCheckedAt} now={now} stale={stale} />
         </span>
 
         <span className="text-line-strong">·</span>

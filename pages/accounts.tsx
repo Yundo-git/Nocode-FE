@@ -6,7 +6,7 @@ import { AccountFormModal } from "@/components/accounts/AccountFormModal";
 import { AccountTable } from "@/components/accounts/AccountTable";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { canManageAccounts } from "@/lib/accounts/permissions";
-import { useAccounts } from "@/lib/accounts/useAccounts";
+import { fetchAccountPage, useAccountActions } from "@/lib/accounts/useAccounts";
 import { useAuth } from "@/lib/auth";
 import {
   EMPTY_ACCOUNT_FILTERS,
@@ -15,43 +15,16 @@ import {
   type AdminAccountInput,
 } from "@/lib/accounts/types";
 
-// 검색 조건에 맞는 계정만 걸러 냅니다.
-// 백엔드가 붙으면 이 조건을 그대로 넘기고 이 함수는 지우면 됩니다.
-function applyFilters(
-  accounts: readonly Account[],
-  filters: AccountFilterValues,
-): readonly Account[] {
-  const keyword = filters.keyword.trim().toLowerCase();
-
-  return accounts.filter((account) => {
-    if (keyword) {
-      const haystack =
-        `${account.loginId} ${account.name} ${account.email}`.toLowerCase();
-      if (!haystack.includes(keyword)) return false;
-    }
-
-    if (filters.divisionId && account.divisionId !== filters.divisionId) {
-      return false;
-    }
-    if (filters.role && account.role !== filters.role) return false;
-    if (filters.enabled === "on" && !account.enabled) return false;
-    if (filters.enabled === "off" && account.enabled) return false;
-
-    return true;
-  });
-}
-
 export default function AccountsPage() {
   // 지금 보고 있는 사람은 백엔드가 세션을 보고 알려 줍니다.
   const { account: me } = useAuth();
   const {
-    accounts,
-    status,
-    toggleEnabled,
+    setEnabled,
     createAccount,
     updateAccount,
     removeAccount,
-  } = useAccounts();
+    resetPassword,
+  } = useAccountActions();
 
   // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
   // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireAccountManager)
@@ -61,29 +34,55 @@ export default function AccountsPage() {
   const [editing, setEditing] = useState<Account | null>(null);
   const [formOpen, setFormOpen] = useState(false);
 
+  const table = useTableState<AccountFilterValues, Account>(
+    EMPTY_ACCOUNT_FILTERS,
+    fetchAccountPage,
+  );
+
   const handleSubmit = useCallback(
-    async (input: AdminAccountInput): Promise<string> => {
+    async (input: AdminAccountInput, password: string): Promise<string> => {
       const result =
         editing === null
-          ? await createAccount(input)
+          ? await createAccount(input, password)
           : await updateAccount(editing.id, input);
 
-      if (result.ok) return "";
+      if (!result.ok) {
+        return result.reason === "duplicate-login-id"
+          ? "이미 쓰고 있는 아이디입니다."
+          : "계정을 찾을 수 없습니다.";
+      }
 
-      return result.reason === "duplicate-login-id"
-        ? "이미 쓰고 있는 아이디입니다."
-        : "계정을 찾을 수 없습니다.";
+      // 쪽 나누기를 서버가 하므로 지금 쪽을 다시 받아야 합니다.
+      if (editing === null) table.setPage(1);
+      table.reload();
+      return "";
     },
-    [editing, createAccount, updateAccount],
+    [editing, createAccount, updateAccount, table],
   );
 
+  const handleDelete = useCallback(
+    async (id: string): Promise<string> => {
+      const message = await removeAccount(id);
 
-  const filterAccounts = useCallback(
-    (values: AccountFilterValues) => applyFilters(accounts, values),
-    [accounts],
+      if (message === "") table.reload();
+
+      return message;
+    },
+    [removeAccount, table],
   );
 
-  const table = useTableState(EMPTY_ACCOUNT_FILTERS, filterAccounts);
+  const handleToggleEnabled = useCallback(
+    async (id: string) => {
+      const target = table.rows.find((row) => row.id === id);
+
+      if (target === undefined) return;
+
+      const message = await setEnabled(id, !target.enabled);
+
+      if (message === "") table.reload();
+    },
+    [setEnabled, table],
+  );
 
   return (
     <>
@@ -96,7 +95,7 @@ export default function AccountsPage() {
 
         <AccountFilters onSearch={table.search} />
 
-        {status === "error" ? (
+        {table.status === "error" ? (
           <div className="panel px-4 py-10 text-center text-b2_body_r text-muted">
             계정 목록을 불러오지 못했습니다.
           </div>
@@ -109,7 +108,7 @@ export default function AccountsPage() {
             pageSize={table.pageSize}
             onPageChange={table.setPage}
             onPageSizeChange={table.changePageSize}
-            onToggleEnabled={toggleEnabled}
+            onToggleEnabled={(id) => void handleToggleEnabled(id)}
             canManage={canManage}
             onCreateClick={() => {
               setEditing(null);
@@ -129,7 +128,8 @@ export default function AccountsPage() {
             account={editing}
             onClose={() => setFormOpen(false)}
             onSubmit={handleSubmit}
-            onDelete={removeAccount}
+            onDelete={handleDelete}
+            onResetPassword={resetPassword}
           />
         ) : null}
       </div>

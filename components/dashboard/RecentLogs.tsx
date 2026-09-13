@@ -32,7 +32,10 @@ export function RecentLogs() {
     let alive = true;
 
     const load = async () => {
-      const res = await api.get<LogPage>(`/logs?page=1&pageSize=${LIMIT}`);
+      // 화면이 스스로 주기적으로 보내는 요청입니다. 로그인 기한을 밀지 않습니다.
+      const res = await api.get<LogPage>(`/logs?page=1&pageSize=${LIMIT}`, {
+        background: true,
+      });
 
       if (!alive) return;
 

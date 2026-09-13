@@ -10,6 +10,7 @@ import { MaintenanceToggle } from "@/components/dashboard/MaintenanceToggle";
 import { ServerStatusPanel } from "@/components/dashboard/ServerStatusPanel";
 import { Panel } from "@/components/ui/Panel";
 import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
+import { SUMMARY_REFRESH_MS, staleAfterMs } from "@/lib/dashboard/types";
 import { useNow } from "@/lib/useNow";
 import { useSettings } from "@/lib/settings/useSettings";
 
@@ -85,7 +86,7 @@ export default function HomePage() {
                 headerClassName={HEADER_CLASS}
                 bodyClassName="overflow-auto"
                 title="서버 상태"
-                description="1분갱신"
+                description={`${SUMMARY_REFRESH_MS / 1000}초 갱신`}
                 actions={
                   <button
                     type="button"
@@ -101,6 +102,10 @@ export default function HomePage() {
                   summary={summary}
                   loading={status === "loading"}
                   now={now}
+                  // ★ 서버가 알려 준 핑 주기로 계산합니다.
+                  //   화면에 숫자를 적어 두면 언젠가 실제와 어긋납니다.
+                  staleAfterMs={staleAfterMs(settings.pingIntervalSec)}
+                  pingIntervalMs={settings.pingIntervalSec * 1000}
                 />
               </Panel>
             </div>

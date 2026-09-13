@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { PasswordPanel } from "@/components/my-account/PasswordPanel";
+import { SessionPanel } from "@/components/my-account/SessionPanel";
 import { ReadOnlyRow } from "@/components/my-account/ReadOnlyRow";
 import { SettingsPanel } from "@/components/my-account/SettingsPanel";
 import { FormRow } from "@/components/ui/FormRow";
@@ -15,8 +16,15 @@ import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
 // 본인이 고칠 수 있는 것(이름·이메일·번호·비밀번호)과
 // 관리자만 바꿀 수 있는 것(아이디·소속 파트·권한)을 나눠서 보여 줍니다.
 export default function MyAccountPage() {
-  const { account, status, saving, saveProfile, setNotifyEnabled } =
-    useMyAccount();
+  const {
+    account,
+    status,
+    saving,
+    saveProfile,
+    setNotifyEnabled,
+    changePassword,
+    setSessionTtl,
+  } = useMyAccount();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -133,9 +141,15 @@ export default function MyAccountPage() {
         </form>
       </Panel>
 
-      <SettingsPanel account={account} onNotifyChange={setNotifyEnabled} />
+      <SettingsPanel
+        account={account}
+        onNotifyChange={setNotifyEnabled}
+        onSessionTtlChange={setSessionTtl}
+      />
 
-      <PasswordPanel />
+      <PasswordPanel onChange={changePassword} />
+
+      <SessionPanel />
     </Shell>
   );
 }

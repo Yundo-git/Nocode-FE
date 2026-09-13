@@ -54,24 +54,32 @@ export type DashboardSummary = {
   readonly problems: readonly ProblemServer[];
 };
 
-// 백엔드가 핑을 얼마마다 쏘는지입니다.
-//
-// ★ 핑 주기를 정하면 이 값을 반드시 맞춰 주세요.
-//   이 값이 실제보다 크면 감시가 멈춰도 한참 뒤에야 알아채고,
-//   실제보다 작으면 멀쩡한데도 경고가 뜹니다.
-export const EXPECTED_PING_INTERVAL_MS = 60_000;
-
 // 대시보드가 요약을 다시 받아 오는 간격입니다.
 // useDashboardSummary 가 이 값을 씁니다. (두 곳에 따로 적으면 어긋납니다)
 export const SUMMARY_REFRESH_MS = 15_000;
 
-// 마지막 확인이 이보다 오래됐으면 감시가 멈춘 것으로 봅니다.
-//
-// 화면에 보이는 "마지막 점검" 은 실제보다 최대
-//   핑 주기 + 요약 갱신 간격
-// 만큼 뒤처져 있습니다. 핑을 쏜 직후에 갱신이 막 지나갔을 수 있기 때문입니다.
-// 그 지연에 더해, 한두 번 걸러진 것까지 경고하면 시끄러우므로 3회분을 봅니다.
-//
-// 예) 핑 15초 + 갱신 15초 -> 15*3 + 15 = 60초 뒤 경고
-export const STALE_AFTER_MS =
-  EXPECTED_PING_INTERVAL_MS * 3 + SUMMARY_REFRESH_MS;
+/**
+ * 마지막 확인이 이보다 오래됐으면 감시가 멈춘 것으로 봅니다.
+ *
+ * ★ 핑 주기를 화면에 적어 두지 않습니다. **서버에서 받아 옵니다.**
+ *   (settings 의 pingIntervalSec)
+ *
+ *   전에는 EXPECTED_PING_INTERVAL_MS 를 여기에 적어 두고
+ *   "핑 주기를 바꾸면 이 값도 같이 맞추세요" 라고 주석을 달아 두었습니다.
+ *   실제로 어긋나 있었습니다. DB 는 15초인데 화면은 60초로 알고 있어서,
+ *   pinger 가 죽어도 **3분 15초 동안 화면이 "정상" 으로 보였습니다.**
+ *
+ *   사람이 두 곳을 맞추는 규칙은 언젠가 깨집니다.
+ *   한 곳에서만 정하고 나머지가 따라오게 두는 편이 안전합니다.
+ *
+ * 계산:
+ *   화면에 보이는 "마지막 점검" 은 실제보다 최대 (핑 주기 + 갱신 간격)만큼
+ *   뒤처져 있습니다. 핑을 쏜 직후에 갱신이 막 지나갔을 수 있기 때문입니다.
+ *   그 지연에 더해, 한두 번 걸러진 것까지 경고하면 시끄러우므로 3회분을 봅니다.
+ *
+ *   핑 15초 -> 15*3 + 15 = 60초 뒤 경고
+ *   핑 60초 -> 60*3 + 15 = 195초 뒤 경고
+ */
+export function staleAfterMs(pingIntervalSec: number): number {
+  return pingIntervalSec * 1000 * 3 + SUMMARY_REFRESH_MS;
+}

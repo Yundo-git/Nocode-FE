@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, ensureCsrfToken } from "@/lib/api/client";
+import { api, ensureCsrfToken, setUnauthorizedHandler } from "@/lib/api/client";
 import type { Account } from "@/lib/accounts/types";
 
 // loading       : 로그인 상태를 아직 확인하는 중입니다.
@@ -80,6 +80,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
+  }, []);
+
+  // 어느 요청에서든 401 이 오면 로그인 상태를 내립니다.
+  //
+  // ★ 세션은 소리 없이 끊길 수 있습니다.
+  //   - 기한이 지남 (유휴 12시간 / 절대 24시간)
+  //   - 관리자가 계정을 정지시킴
+  //   - 다른 기기에서 "다른 기기 모두 로그아웃" 을 누름
+  //   - 비밀번호를 바꿈
+  //   이때 화면이 그대로 있으면 사람은 왜 안 되는지 알 수 없습니다.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setAccount(null);
+      setStatus("guest");
+    });
+
+    return () => setUnauthorizedHandler(null);
   }, []);
 
   const login = useCallback(async (loginId: string, password: string) => {

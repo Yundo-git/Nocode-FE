@@ -14,6 +14,7 @@ function toSearch(query: LogQuery): string {
   if (query.from) params.set("from", query.from);
   if (query.to) params.set("to", query.to);
   if (query.serverId) params.set("serverId", query.serverId);
+  if (query.keyword.trim()) params.set("keyword", query.keyword.trim());
   if (query.type) params.set("type", query.type);
   if (query.divisionId) params.set("divisionId", query.divisionId);
 
@@ -22,9 +23,8 @@ function toSearch(query: LogQuery): string {
 
 // 로그 조회 상태입니다.
 //
-// 서버관리·계정관리와 다릅니다. 그쪽은 전체를 받아 브라우저에서 걸렀지만,
-// 로그는 조건과 쪽 번호를 서버로 보내고 그 쪽만 받아 옵니다.
-// (전체를 받으면 브라우저가 버티지 못합니다)
+// 조건과 쪽 번호를 서버로 보내고 그 쪽만 받아 옵니다.
+// (서버관리·계정관리도 이제 같은 방식입니다)
 export function useLogs() {
   const [query, setQuery] = useState<LogQuery>(EMPTY_LOG_QUERY);
   const [page, setPage] = useState<LogPage>({ rows: [], totalCount: 0 });

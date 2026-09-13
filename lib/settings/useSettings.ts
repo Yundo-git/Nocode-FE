@@ -16,7 +16,7 @@ export function useSettings() {
     let alive = true;
 
     const load = async () => {
-      const res = await api.get<SystemSettings>("/settings");
+      const res = await api.get<SystemSettings>("/settings", { background: true });
 
       if (!alive || !res.ok) return;
 

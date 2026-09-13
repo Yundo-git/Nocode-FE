@@ -1,75 +1,49 @@
 import Head from "next/head";
 import { useCallback, useState } from "react";
 import { useTableState } from "@/lib/useTableState";
+import { useAuth } from "@/lib/auth";
+import { canManageServers } from "@/lib/accounts/permissions";
 import { ServerFilters } from "@/components/servers/ServerFilters";
 import { ServerRegisterModal } from "@/components/servers/ServerRegisterModal";
 import { ServerTable } from "@/components/servers/ServerTable";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ErrorModal } from "@/components/ui/ErrorModal";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { useServers } from "@/lib/servers/useServers";
+import { fetchServerPage, useServerActions } from "@/lib/servers/useServers";
 import {
   EMPTY_FILTERS,
-  getDisplayState,
   type NewServerInput,
   type Server,
   type ServerFilterValues,
 } from "@/lib/servers/types";
 
-// 검색 조건에 맞는 서버만 걸러 냅니다.
-// 지금은 브라우저에서 거르지만, 백엔드가 붙으면 이 조건을 그대로
-// 서버에 넘기고 이 함수는 지우면 됩니다.
-function applyFilters(
-  servers: readonly Server[],
-  filters: ServerFilterValues,
-): readonly Server[] {
-  const keyword = filters.keyword.trim().toLowerCase();
-
-  return servers.filter((server) => {
-    if (keyword) {
-      const haystack =
-        `${server.nameEn} ${server.nameKo} ${server.ip}`.toLowerCase();
-      if (!haystack.includes(keyword)) return false;
-    }
-
-    if (filters.type && server.type !== filters.type) return false;
-    if (filters.divisionId && server.divisionId !== filters.divisionId) {
-      return false;
-    }
-    // 상태는 핑 결과가 아니라 화면에 보이는 점(정상/비정상/미연결) 기준으로 거릅니다.
-    if (filters.status && getDisplayState(server) !== filters.status) return false;
-
-    // 날짜는 YYYY-MM-DD 문자열끼리 비교해도 순서가 맞습니다.
-    //
-    // 아직 한 번도 확인하지 않은 장비(checkedAt === null)는
-    // 기간 조건을 걸면 빠집니다. "그 기간에 확인된 것" 을 찾는 조건인데
-    // 확인된 적이 없으니 해당하지 않습니다.
-    if (filters.from || filters.to) {
-      if (server.checkedAt === null) return false;
-
-      const checkedDate = server.checkedAt.slice(0, 10);
-      if (filters.from && checkedDate < filters.from) return false;
-      if (filters.to && checkedDate > filters.to) return false;
-    }
-
-    return true;
-  });
-}
-
+// 서버관리 화면입니다.
+//
+// ★ 검색과 쪽 나누기를 **서버가** 합니다. (NOTES.md 4-11)
+//   예전에는 전체를 받아 브라우저에서 걸렀습니다.
+//   장비가 1,000대가 되면 목록 전체를 내려받는 것 자체가 부담이라 바꿨습니다.
 export default function ServersPage() {
-  const { servers, status, addServer, toggleEnabled } = useServers();
+  const { account } = useAuth();
+  const { addServer, updateServer, toggleEnabled, removeServers } =
+    useServerActions();
+
+  // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
+  // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireServerManager)
+  const canManage = account !== null && canManageServers(account);
 
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
-  // 등록이 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
-  const [registerError, setRegisterError] = useState("");
+  // null 이면 새로 등록하는 창, 값이 있으면 그 장비를 고치는 창입니다.
+  const [editing, setEditing] = useState<Server | null>(null);
+  // 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
+  const [failMessage, setFailMessage] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  // 목록을 거르는 규칙만 넘기면 쪽 나누기는 useTableState 가 맡습니다.
-  const filterServers = useCallback(
-    (values: ServerFilterValues) => applyFilters(servers, values),
-    [servers],
+  const table = useTableState<ServerFilterValues, Server>(
+    EMPTY_FILTERS,
+    fetchServerPage,
   );
-
-  const table = useTableState(EMPTY_FILTERS, filterServers);
 
   const handleToggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -81,6 +55,9 @@ export default function ServersPage() {
   }, []);
 
   // 이번 쪽이 모두 선택돼 있으면 이번 쪽만 풀고, 아니면 이번 쪽을 모두 더합니다.
+  //
+  // ★ "전체 선택" 이 아니라 "이 쪽 선택" 입니다.
+  //   쪽 나누기를 서버가 하므로 브라우저는 다른 쪽에 무엇이 있는지 모릅니다.
   const handleToggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -100,27 +77,65 @@ export default function ServersPage() {
     setSelectedIds(new Set());
   }, []);
 
-  // 등록하면 새 줄이 맨 위에 붙습니다. 검색 조건 때문에 안 보일 수 있으므로
-  // 첫 쪽으로 되돌려 줍니다.
-  //
-  // 같은 IP 가 이미 있으면 등록되지 않고 실패 창이 뜹니다.
+  const handleToggleEnabled = useCallback(
+    async (id: string) => {
+      const target = table.rows.find((row) => row.id === id);
+
+      if (target === undefined) return;
+
+      const message = await toggleEnabled(id, !target.enabled);
+
+      if (message) {
+        setFailMessage(message);
+        return;
+      }
+
+      // 서버가 상태와 로그를 함께 바꿨으므로 지금 쪽을 다시 받습니다.
+      table.reload();
+    },
+    [table, toggleEnabled],
+  );
+
   const handleRegister = useCallback(
     async (input: NewServerInput) => {
-      const result = await addServer(input);
+      const result =
+        editing === null
+          ? await addServer(input)
+          : await updateServer(editing.id, input);
 
       if (!result.ok) {
-        setRegisterError(
+        setFailMessage(
           result.reason === "duplicate-ip"
             ? "이미 등록된 IP입니다."
-            : "등록에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            : editing === null
+              ? "등록에 실패했습니다. 잠시 후 다시 시도해주세요."
+              : "저장에 실패했습니다. 잠시 후 다시 시도해주세요.",
         );
         return;
       }
 
-      table.setPage(1);
+      // 새로 등록한 것은 맨 위에 오므로 첫 쪽으로 돌아갑니다.
+      if (editing === null) table.setPage(1);
+      table.reload();
     },
-    [addServer, table],
+    [addServer, updateServer, editing, table],
   );
+
+  const handleDeleteSelected = useCallback(async () => {
+    setBusy(true);
+
+    try {
+      const result = await removeServers([...selectedIds]);
+
+      setSelectedIds(new Set());
+      setConfirmDelete(false);
+      table.reload();
+
+      if (result.message) setFailMessage(result.message);
+    } finally {
+      setBusy(false);
+    }
+  }, [removeServers, selectedIds, table]);
 
   return (
     <>
@@ -135,7 +150,7 @@ export default function ServersPage() {
         <ServerFilters onSearch={table.search} />
 
         {/* 서버 목록 */}
-        {status === "error" ? (
+        {table.status === "error" ? (
           <div className="panel px-4 py-10 text-center text-b2_body_r text-muted">
             서버 목록을 불러오지 못했습니다.
           </div>
@@ -152,22 +167,45 @@ export default function ServersPage() {
             onToggleSelect={handleToggleSelect}
             onToggleSelectAll={handleToggleSelectAll}
             onClearSelection={handleClearSelection}
-            onToggleEnabled={toggleEnabled}
-            onRegisterClick={() => setRegisterOpen(true)}
+            onToggleEnabled={(id) => void handleToggleEnabled(id)}
+            onRegisterClick={() => {
+              setEditing(null);
+              setRegisterOpen(true);
+            }}
+            onDeleteSelected={() => setConfirmDelete(true)}
+            onRowClick={
+              canManage
+                ? (server) => {
+                    setEditing(server);
+                    setRegisterOpen(true);
+                  }
+                : undefined
+            }
           />
         )}
 
         <ServerRegisterModal
           open={registerOpen}
+          editing={editing}
           onClose={() => setRegisterOpen(false)}
           onSubmit={handleRegister}
         />
 
+        <ConfirmModal
+          open={confirmDelete}
+          title="선택한 장비 삭제"
+          message={`${selectedIds.size}대를 지웁니다. 되돌릴 수 없습니다.\n(지금까지 쌓인 로그는 남습니다)`}
+          confirmLabel="삭제"
+          busy={busy}
+          onConfirm={() => void handleDeleteSelected()}
+          onClose={() => setConfirmDelete(false)}
+        />
+
         <ErrorModal
-          open={registerError !== ""}
-          title="등록 실패"
-          message={registerError}
-          onClose={() => setRegisterError("")}
+          open={failMessage !== ""}
+          title="처리하지 못했습니다"
+          message={failMessage}
+          onClose={() => setFailMessage("")}
         />
       </div>
     </>

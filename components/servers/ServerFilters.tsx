@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FilterField, FilterForm } from "@/components/ui/FilterForm";
+import { DateRangeField } from "@/components/ui/DateRangeField";
 import {
   BUSINESS_DIVISIONS,
   type BusinessDivisionId,
@@ -45,26 +46,14 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
 
   return (
     <FilterForm onSubmit={() => onSearch(draft)} onReset={handleReset}>
-          {/* 등록일시 */}
-          <FilterField label="등록일시" htmlFor="filter-from">
-            <div className="flex min-w-0 items-center gap-2">
-              <input
-                id="filter-from"
-                type="date"
-                value={draft.from}
-                onChange={(event) => update("from", event.currentTarget.value)}
-                className="input min-w-0 flex-1"
-              />
-              <span className="shrink-0 text-b2_body_r text-muted">~</span>
-              <input
-                type="date"
-                aria-label="등록일시 끝"
-                value={draft.to}
-                onChange={(event) => update("to", event.currentTarget.value)}
-                className="input min-w-0 flex-1"
-              />
-            </div>
-          </FilterField>
+          {/* 등록일시. 로그조회와 같은 칸을 씁니다. */}
+          <DateRangeField
+            label="등록일시"
+            idPrefix="server"
+            from={draft.from}
+            to={draft.to}
+            onChange={(next) => setDraft((prev) => ({ ...prev, ...next }))}
+          />
 
           {/* 서버 ID / IP / 이름 검색 */}
           <FilterField label="서버명 · IP" htmlFor="filter-keyword">
