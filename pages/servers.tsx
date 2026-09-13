@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { useTableState } from "@/lib/useTableState";
 import { useAuth } from "@/lib/auth";
 import { canManageServers } from "@/lib/accounts/permissions";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { ServerFilters } from "@/components/servers/ServerFilters";
 import { ServerRegisterModal } from "@/components/servers/ServerRegisterModal";
 import { ServerTable } from "@/components/servers/ServerTable";
@@ -22,7 +23,16 @@ import {
 // ★ 검색과 쪽 나누기를 **서버가** 합니다. (NOTES.md 4-11)
 //   예전에는 전체를 받아 브라우저에서 걸렀습니다.
 //   장비가 1,000대가 되면 목록 전체를 내려받는 것 자체가 부담이라 바꿨습니다.
-export default function ServersPage() {
+// 주소를 직접 쳐서 들어오는 것도 막습니다. (사이드바에서 감추는 것만으로는 부족)
+export default function ServersPageRoute() {
+  return (
+    <RequirePermission allow={canManageServers}>
+      <ServersPage />
+    </RequirePermission>
+  );
+}
+
+function ServersPage() {
   const { account } = useAuth();
   const { addServer, updateServer, toggleEnabled, removeServers } =
     useServerActions();

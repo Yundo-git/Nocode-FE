@@ -16,6 +16,23 @@ type SessionInfo = {
   readonly current: boolean;
 };
 
+/**
+ * IP 를 사람이 읽을 수 있게 바꿉니다.
+ *
+ * ★ ::1 과 127.0.0.1 은 "이 서버에서 직접" 이라는 뜻입니다.
+ *   서버와 같은 PC 에서 localhost 로 접속하면 이렇게 나옵니다.
+ *   숫자를 그대로 보여 주면 "IP 가 안 나온다" 고 오해하기 쉬워
+ *   말로 풀어 적습니다.
+ *
+ *   다른 PC 에서 접속하면 192.168.x.x 처럼 실제 주소가 나옵니다.
+ */
+function describeIp(ip: string | null): string {
+  if (ip === null) return "주소 기록 없음";
+  if (ip === "::1" || ip === "127.0.0.1") return "이 서버에서 직접";
+
+  return ip;
+}
+
 // 지금 로그인되어 있는 기기 목록입니다.
 //
 // ★ 같은 계정으로 여러 곳에서 로그인할 수 있습니다. 일부러 막지 않았습니다.
@@ -76,14 +93,15 @@ export function SessionPanel() {
                 className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-md)] border border-line px-3 py-2"
               >
                 <div className="min-w-0">
-                  {/* ★ IP 를 앞에 둡니다. 사람이 기기를 알아보는 유일한 단서입니다.
-                      세션 번호는 같은 IP 에서 여러 번 로그인했을 때
-                      구분하는 용도로만 뒤에 붙입니다. */}
-                  <span className="font-mono text-b2_body_m text-body">
-                    {session.clientIp ?? "주소 모름"}
-                  </span>
-                  <span className="ml-2 font-mono text-bt-text-s text-muted">
-                    {session.id}…
+                  {/* ★ IP 만 보여 줍니다.
+                      전에는 세션 번호(앞 8자)도 같이 띄웠는데, 사람에게는
+                      아무 뜻이 없는 글자라 혼란만 줍니다.
+                      기기를 알아보는 단서는 IP 하나면 충분합니다. */}
+                  <span
+                    className="font-mono text-b2_body_m text-body"
+                    title={session.clientIp ?? undefined}
+                  >
+                    {describeIp(session.clientIp)}
                   </span>
                   {session.current ? (
                     <span className="ml-2 rounded-full bg-primary-500 px-2 py-0.5 text-d-label font-semibold text-white">

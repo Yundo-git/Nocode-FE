@@ -2,10 +2,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { memo } from "react";
 import {
-  NAV_ITEMS,
   isNavItemActive,
+  visibleNavItems,
   type NavItem,
 } from "@/components/layout/sidebar/navItems";
+import { useAuth } from "@/lib/auth";
 
 type SidebarNavItemProps = {
   item: NavItem;
@@ -52,6 +53,10 @@ const SidebarNavItem = memo(function SidebarNavItem({
 export function SidebarNav({ open }: { open: boolean }) {
   // pathname 은 주소가 바뀔 때만 값이 달라집니다.
   const { pathname } = useRouter();
+  const { account } = useAuth();
+
+  // 권한이 없는 메뉴는 아예 그리지 않습니다.
+  const items = visibleNavItems(account);
 
   return (
     <nav
@@ -59,7 +64,7 @@ export function SidebarNav({ open }: { open: boolean }) {
       className="min-h-0 flex-1 overflow-y-auto px-2 py-2"
     >
       <ul className="space-y-1">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <SidebarNavItem
             key={item.href}
             item={item}

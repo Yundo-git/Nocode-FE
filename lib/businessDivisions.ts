@@ -33,11 +33,3 @@ export const BUSINESS_DIVISION_LABEL: Record<BusinessDivisionId, string> =
     {} as Record<BusinessDivisionId, string>,
   );
 
-// 권한을 붙일 때 쓸 검사입니다.
-// 볼 수 있는 업무구분 목록이 비어 있으면 "제한 없음"으로 봅니다.
-export function canViewDivision(
-  allowed: readonly BusinessDivisionId[],
-  target: BusinessDivisionId,
-): boolean {
-  return allowed.length === 0 || allowed.includes(target);
-}

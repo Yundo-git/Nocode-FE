@@ -6,6 +6,7 @@ import { AccountFormModal } from "@/components/accounts/AccountFormModal";
 import { AccountTable } from "@/components/accounts/AccountTable";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { canManageAccounts } from "@/lib/accounts/permissions";
+import { RequirePermission } from "@/components/auth/RequirePermission";
 import { fetchAccountPage, useAccountActions } from "@/lib/accounts/useAccounts";
 import { useAuth } from "@/lib/auth";
 import {
@@ -15,7 +16,16 @@ import {
   type AdminAccountInput,
 } from "@/lib/accounts/types";
 
-export default function AccountsPage() {
+// 주소를 직접 쳐서 들어오는 것도 막습니다. (사이드바에서 감추는 것만으로는 부족)
+export default function AccountsPageRoute() {
+  return (
+    <RequirePermission allow={canManageAccounts}>
+      <AccountsPage />
+    </RequirePermission>
+  );
+}
+
+function AccountsPage() {
   // 지금 보고 있는 사람은 백엔드가 세션을 보고 알려 줍니다.
   const { account: me } = useAuth();
   const {
@@ -40,10 +50,10 @@ export default function AccountsPage() {
   );
 
   const handleSubmit = useCallback(
-    async (input: AdminAccountInput, password: string): Promise<string> => {
+    async (input: AdminAccountInput): Promise<string> => {
       const result =
         editing === null
-          ? await createAccount(input, password)
+          ? await createAccount(input)
           : await updateAccount(editing.id, input);
 
       if (!result.ok) {

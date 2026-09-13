@@ -44,7 +44,7 @@ export function ServerStatusPanel({
     // 글자만 띄우면 내용이 채워질 때 배치가 크게 튑니다.
     // 실제와 비슷한 자리를 미리 잡아 둡니다.
     return (
-      <div className="grid h-full grid-cols-1 items-center gap-6 lg:grid-cols-3">
+      <div className="donut-grid h-full items-center gap-6">
         {[0, 1, 2].map((key) => (
           <div key={key} className="flex items-center justify-center gap-4">
             <Skeleton circle className="h-[164px] w-[164px]" />
@@ -71,8 +71,11 @@ export function ServerStatusPanel({
 
   return (
     <div className="flex h-full min-w-0 flex-col justify-center gap-4">
-      {/* 세 칸을 같은 폭으로 나눠 도넛을 고르게 벌립니다. */}
-      <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-3">
+      {/* 세 칸을 같은 폭으로 나눠 도넛을 고르게 벌립니다.
+          ★ 화면 폭이 아니라 **이 상자의 폭**에 맞춰 칸 수가 줄어듭니다.
+            대시보드는 사람이 상자 크기를 바꿀 수 있어서,
+            화면 폭(lg:) 기준으로 세 칸을 고집하면 좁힌 상자에서 깨집니다. */}
+      <div className="donut-grid items-center gap-6">
         <HealthDonut label="전체" counts={counts} stale={stale} />
         {byType.map((item) => (
           <HealthDonut

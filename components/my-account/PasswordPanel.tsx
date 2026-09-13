@@ -60,7 +60,7 @@ export function PasswordPanel({ onChange }: PasswordPanelProps) {
   };
 
   return (
-    <Panel title="비밀번호 변경" description="8자 이상">
+    <Panel title="비밀번호 변경" description="6자 이상 · 숫자 · 특수문자">
       <form onSubmit={handleSubmit} className="space-y-3">
         <FormRow labelWidth="md" label="현재 비밀번호" htmlFor="pw-current">
           <input

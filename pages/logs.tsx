@@ -1,5 +1,7 @@
 import Head from "next/head";
+import { useState } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Toast } from "@/components/ui/Toast";
 import { LogFilters } from "@/components/logs/LogFilters";
 import { LogTable } from "@/components/logs/LogTable";
 import { useLogs } from "@/lib/logs/useLogs";
@@ -19,13 +21,25 @@ export default function LogsPage() {
     search,
     goToPage,
     changePageSize,
+    download,
+    downloading,
   } = useLogs();
+
+  // 내려받기 결과입니다. 잘렸거나 실패했을 때만 알립니다.
+  // 잘 받아졌으면 파일이 내려오는 것 자체가 신호라 따로 알리지 않습니다.
+  const [notice, setNotice] = useState("");
+
+  const handleDownload = async () => {
+    setNotice(await download());
+  };
 
   return (
     <>
       <Head>
         <title>로그조회 | PingCheck</title>
       </Head>
+
+      <Toast message={notice} tone="error" onDone={() => setNotice("")} />
 
       <div className="space-y-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "로그조회"]} title="로그조회" />
@@ -44,7 +58,9 @@ export default function LogsPage() {
             totalPages={totalPages}
             pageSize={pageSize}
             loading={status === "loading"}
-            onPageChange={goToPage}
+            onDownload={() => void handleDownload()}
+          downloading={downloading}
+          onPageChange={goToPage}
             onPageSizeChange={changePageSize}
           />
         )}

@@ -8,7 +8,7 @@ import {
   type AccountRole,
   type AdminAccountInput,
 } from "@/lib/accounts/types";
-import { validateAdminAccount, validateNewPassword } from "@/lib/accounts/validation";
+import { validateAdminAccount } from "@/lib/accounts/validation";
 import {
   BUSINESS_DIVISIONS,
   type BusinessDivisionId,
@@ -19,14 +19,13 @@ type AccountFormModalProps = {
   /** 고칠 계정입니다. null 이면 새로 만드는 창이 됩니다. */
   account: Account | null;
   onClose: () => void;
-  onSubmit: (input: AdminAccountInput, password: string) => Promise<string>;
+  onSubmit: (input: AdminAccountInput) => Promise<string>;
   /**
-   * 이미 있는 계정의 비밀번호를 다시 정해 줍니다. (초기화)
+   * 비밀번호를 초기화합니다. (지웁니다)
    *
-   * ★ 지금 비밀번호를 묻지 않습니다. 관리자는 그것을 모르기 때문입니다.
-   *   비밀번호를 잊은 사람에게 새로 발급해 주는 길입니다.
+   * 새로 정해 주는 것이 아닙니다. 그 사람이 다음 로그인 때 직접 정합니다.
    */
-  onResetPassword: (id: string, password: string) => Promise<string>;
+  onResetPassword: (id: string) => Promise<string>;
   /** 삭제를 누르면 부릅니다. 새로 만드는 중에는 버튼이 나오지 않습니다. */
   onDelete: (id: string) => Promise<string>;
 };
@@ -39,8 +38,6 @@ type DraftValues = {
   phone: string;
   divisionId: BusinessDivisionId | "";
   role: AccountRole | "";
-  /** 새로 만들 때의 비밀번호입니다. 비워 두면 "아직 정하지 않음" 이 됩니다. */
-  password: string;
 };
 
 const EMPTY_DRAFT: DraftValues = {
@@ -50,7 +47,6 @@ const EMPTY_DRAFT: DraftValues = {
   phone: "",
   divisionId: "",
   role: "viewer",
-  password: "",
 };
 
 // 관리자가 계정을 만들거나 고치는 창입니다.
@@ -65,6 +61,8 @@ export function AccountFormModal({
   const [draft, setDraft] = useState<DraftValues>(EMPTY_DRAFT);
   const [error, setError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // 초기화 결과 안내입니다. 수정 창에서만 씁니다.
+  const [resetMessage, setResetMessage] = useState("");
   const isEdit = account !== null;
 
   // 창이 열릴 때 값을 채우고, 닫히면 비웁니다.
@@ -87,16 +85,10 @@ export function AccountFormModal({
             phone: account.phone,
             divisionId: account.divisionId,
             role: account.role,
-            password: "",
           },
     );
-    setResetPassword("");
     setResetMessage("");
   }, [open, account]);
-
-  // 비밀번호 초기화 칸의 값입니다. 수정 창에서만 씁니다.
-  const [resetPassword, setResetPassword] = useState("");
-  const [resetMessage, setResetMessage] = useState("");
 
   const update = <K extends keyof DraftValues>(key: K, value: DraftValues[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -112,16 +104,6 @@ export function AccountFormModal({
       return;
     }
 
-    // 새로 만들 때만 비밀번호를 받습니다.
-    // 비워 두면 "아직 정하지 않음" 이고, 그 계정은 로그인할 수 없습니다.
-    if (!isEdit && draft.password !== "") {
-      const passwordMessage = validateNewPassword(draft.password);
-
-      if (passwordMessage) {
-        setError(passwordMessage);
-        return;
-      }
-    }
 
     // 검사를 통과했으므로 선택 항목이 비어 있지 않습니다.
     const failure = await onSubmit({
@@ -131,7 +113,7 @@ export function AccountFormModal({
       phone: draft.phone.trim(),
       divisionId: draft.divisionId as BusinessDivisionId,
       role: draft.role as AccountRole,
-    }, isEdit ? "" : draft.password);
+    });
 
     if (failure) {
       setError(failure);
@@ -144,19 +126,11 @@ export function AccountFormModal({
   const handleResetPassword = async () => {
     if (account === null) return;
 
-    const message = validateNewPassword(resetPassword);
+    const failure = await onResetPassword(account.id);
 
-    if (message) {
-      setResetMessage(message);
-      return;
-    }
-
-    const failure = await onResetPassword(account.id, resetPassword);
-
-    setResetPassword("");
     setResetMessage(
       failure ||
-        "새 비밀번호를 저장했습니다. 이 계정의 기존 로그인은 모두 끊겼습니다.",
+        "초기화했습니다. 이 계정의 로그인이 모두 끊겼고, 다음 로그인 때 본인이 새로 정합니다.",
     );
   };
 
@@ -220,7 +194,7 @@ export function AccountFormModal({
               type="tel"
               value={draft.phone}
               onChange={(event) => update("phone", event.currentTarget.value)}
-              placeholder="010-1234-5678"
+              placeholder="010-1234-5678 또는 내선 1234"
               className="input w-full"
             />
           </FormRow>
@@ -265,61 +239,35 @@ export function AccountFormModal({
         </div>
 
         {/* ── 비밀번호 ────────────────────────────────────────────────
-            만들 때: 처음 비밀번호를 정합니다. 비워 두면 "아직 정하지 않음" 입니다.
-            고칠 때: 관리자가 다시 정해 줍니다. (지금 비밀번호는 묻지 않습니다) */}
+            ★ 만들 때 비밀번호를 넣지 않습니다.
+              관리자가 정해서 알려 주면 관리자가 남의 비밀번호를 알게 되고,
+              전달하는 동안(메신저·쪽지·구두) 새어 나갑니다.
+              본인이 첫 로그인 때 직접 정합니다. */}
         {isEdit ? (
           <div className="mt-4 border-t border-line pt-4">
-            <FormRow labelWidth="md" label="비밀번호 재발급" htmlFor="acc-reset-pw">
-              <div className="flex items-center gap-2">
-                <input
-                  id="acc-reset-pw"
-                  type="text"
-                  autoComplete="off"
-                  value={resetPassword}
-                  onChange={(event) => setResetPassword(event.currentTarget.value)}
-                  placeholder="8자 이상"
-                  className="input w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => void handleResetPassword()}
-                  disabled={resetPassword === ""}
-                  className="btn btn-ghost btn-md shrink-0"
-                >
-                  재발급
-                </button>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-b2_body_m font-medium text-body">비밀번호</p>
+                <p className="mt-0.5 text-bt-text-s text-muted">
+                  {resetMessage ||
+                    "잊어버렸다면 초기화하세요. 본인이 다시 정하게 됩니다."}
+                </p>
               </div>
-            </FormRow>
 
-            {/* ★ 가리지 않고 그대로 보여 줍니다.
-                관리자가 본인에게 불러 줘야 하는 값이라, 점으로 가리면
-                잘못 불러 주고도 모릅니다. 대신 저장해 두지 않습니다. */}
-            {resetMessage ? (
-              <p className="mt-2 text-bt-text-m text-muted">{resetMessage}</p>
-            ) : (
-              <p className="mt-2 text-bt-text-s text-muted">
-                재발급하면 이 계정의 기존 로그인이 모두 끊깁니다.
-              </p>
-            )}
+              <button
+                type="button"
+                onClick={() => void handleResetPassword()}
+                className="btn btn-ghost btn-md shrink-0"
+              >
+                비밀번호 초기화
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="mt-4 border-t border-line pt-4">
-            <FormRow labelWidth="md" label="비밀번호" htmlFor="acc-password">
-              <input
-                id="acc-password"
-                type="text"
-                autoComplete="off"
-                value={draft.password}
-                onChange={(event) => update("password", event.currentTarget.value)}
-                placeholder="8자 이상 (비워 두면 나중에 발급)"
-                className="input w-full"
-              />
-            </FormRow>
-            <p className="mt-2 text-bt-text-s text-muted">
-              비워 두면 이 계정은 로그인할 수 없습니다. 나중에 수정 창에서
-              발급해 주세요.
-            </p>
-          </div>
+          <p className="mt-4 rounded-[var(--radius-md)] border border-line bg-panel-2 px-3 py-2 text-bt-text-s text-muted">
+            비밀번호는 본인이 첫 로그인 때 직접 정합니다. 계정을 만든 뒤
+            아이디를 알려 주세요.
+          </p>
         )}
 
         {error ? (

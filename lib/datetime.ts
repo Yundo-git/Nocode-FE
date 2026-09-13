@@ -10,7 +10,7 @@ function pad(value: number): string {
 }
 
 // 2026-09-13
-export function formatDate(iso: string): string {
+function formatDate(iso: string): string {
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) return "-";
@@ -19,7 +19,7 @@ export function formatDate(iso: string): string {
 }
 
 // 11:48:20
-export function formatTime(iso: string): string {
+function formatTime(iso: string): string {
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) return "-";

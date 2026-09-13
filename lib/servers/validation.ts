@@ -1,12 +1,9 @@
-import { BUSINESS_DIVISIONS, type BusinessDivisionId } from "@/lib/businessDivisions";
-import { SERVER_TYPES, type NewServerInput, type ServerType } from "@/lib/servers/types";
-
 // 0~255 네 덩어리인지 봅니다.
 //
 // 앞자리 0 도 막습니다. "01.1.1.1" 과 "1.1.1.1" 은 같은 서버를 가리키는데
 // 글자로는 달라서, 허용하면 같은 서버를 두 번 등록할 수 있습니다.
 // (중복 IP 검사는 글자를 그대로 비교합니다)
-export function isValidIpv4(value: string): boolean {
+function isValidIpv4(value: string): boolean {
   const parts = value.split(".");
 
   if (parts.length !== 4) {
@@ -29,7 +26,7 @@ export function isValidIpv4(value: string): boolean {
 // 끝자리 0 / 255 는 "/24 대역" 을 전제로 막습니다.
 // 그보다 넓은 대역(예: 10.0.0.0/16)에서는 10.0.1.0 이나 10.0.1.255 도
 // 정상적인 서버 주소입니다. 그런 망을 감시하게 되면 아래 두 줄을 풀어야 합니다.
-export function getUnusableIpReason(ip: string): string {
+function getUnusableIpReason(ip: string): string {
   const [first, second, , last] = ip.split(".").map(Number);
 
   // 0.0.0.0/8 — 목적지로 쓸 수 없는 대역입니다.
@@ -68,7 +65,7 @@ export function getUnusableIpReason(ip: string): string {
   return "";
 }
 
-export function isValidServerNameEn(value: string): boolean {
+function isValidServerNameEn(value: string): boolean {
   return /^[A-Za-z0-9._-]+$/.test(value);
 }
 
@@ -97,36 +94,4 @@ export function validateNewServerInput(input: {
   if (!input.nameKo.trim()) return "한글명을 입력해주세요.";
 
   return "";
-}
-
-// API 로 들어온 값은 무엇이든 올 수 있으므로 모양부터 확인합니다.
-// 통과하면 다듬어진 값을, 아니면 null 을 돌려줍니다.
-export function parseNewServerInput(body: unknown): NewServerInput | null {
-  if (typeof body !== "object" || body === null) {
-    return null;
-  }
-
-  const raw = body as Record<string, unknown>;
-  const ip = typeof raw.ip === "string" ? raw.ip.trim() : "";
-  const type = typeof raw.type === "string" ? raw.type : "";
-  const divisionId = typeof raw.divisionId === "string" ? raw.divisionId : "";
-  const nameEn = typeof raw.nameEn === "string" ? raw.nameEn.trim() : "";
-  const nameKo = typeof raw.nameKo === "string" ? raw.nameKo.trim() : "";
-
-  if (validateNewServerInput({ ip, type, divisionId, nameEn, nameKo })) {
-    return null;
-  }
-
-  // 정해진 목록에 있는 값인지까지 확인합니다.
-  if (!SERVER_TYPES.includes(type as ServerType)) return null;
-  if (!BUSINESS_DIVISIONS.some((d) => d.id === divisionId)) return null;
-
-  return {
-    ip,
-    type: type as ServerType,
-    divisionId: divisionId as BusinessDivisionId,
-    nameEn,
-    nameKo,
-    enabled: raw.enabled !== false,
-  };
 }

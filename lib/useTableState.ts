@@ -69,6 +69,16 @@ export function useTableState<F, T>(
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
+  // ★ 쪽 수가 줄면 지금 쪽 번호를 끌어내립니다.
+  //
+  //   마지막 쪽에서 줄을 전부 지우면 전체 건수가 줄어 쪽 수도 줄어듭니다.
+  //   그때 쪽 번호를 그대로 두면 **없는 쪽을 요청해 빈 표가 나옵니다.**
+  //   (아래 return 에서 보여 주기만 끌어내리면, 화면에는 "2/2" 라고 쓰여 있는데
+  //    실제로는 3쪽을 받아 와 아무것도 안 보이는 상태가 됩니다)
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   // 조건이 바뀌면 첫 쪽부터 다시 봅니다.
   const search = useCallback((next: F) => {
     setFilters(next);

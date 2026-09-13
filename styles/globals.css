@@ -176,6 +176,15 @@
     background-color: var(--panel);
   }
 
+  /* 도넛을 늘어놓는 격자입니다.
+     auto-fit + minmax 라 **담긴 상자의 폭**에 맞춰 칸 수가 알아서 줄어듭니다.
+     (lg: 같은 화면 폭 기준은 상자를 좁혀도 칸 수가 그대로라 깨집니다)
+       넓으면 3칸 -> 좁으면 2칸 -> 더 좁으면 1칸 */
+  .donut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+
   /* 표 위 줄처럼 촘촘한 곳에서 btn-sm 과 짝을 이루는 크기입니다. */
   .input-sm,
   .select-sm {

@@ -65,17 +65,9 @@ export function useAccountActions() {
   );
 
   const createAccount = useCallback(
-    async (
-      input: AdminAccountInput,
-      password: string,
-    ): Promise<AccountWriteResult> => {
-      // 비밀번호를 비워 두면 보내지 않습니다.
-      // 백엔드는 없으면 "아직 정하지 않음"(NULL)으로 만들고,
-      // 그 계정은 로그인할 수 없습니다.
-      const res = await api.post<Account>("/accounts", {
-        ...input,
-        ...(password === "" ? {} : { password }),
-      });
+    async (input: AdminAccountInput): Promise<AccountWriteResult> => {
+      // 비밀번호는 보내지 않습니다. 본인이 첫 로그인 때 정합니다.
+      const res = await api.post<Account>("/accounts", input);
 
       if (!res.ok) {
         return {
@@ -113,17 +105,16 @@ export function useAccountActions() {
   }, []);
 
   /**
-   * 관리자가 비밀번호를 다시 정해 줍니다.
-   * 그 계정의 기존 로그인은 백엔드가 모두 끊습니다.
+   * 비밀번호를 초기화합니다. (새로 정해 주는 것이 아니라 지웁니다)
+   *
+   * 그 사람이 다음 로그인 때 직접 정합니다.
+   * 기존 로그인은 백엔드가 모두 끊습니다.
    */
-  const resetPassword = useCallback(
-    async (id: string, newPassword: string): Promise<string> => {
-      const res = await api.put<null>(`/accounts/${id}/password`, { newPassword });
+  const resetPassword = useCallback(async (id: string): Promise<string> => {
+    const res = await api.remove<null>(`/accounts/${id}/password`);
 
-      return res.ok ? "" : res.message;
-    },
-    [],
-  );
+    return res.ok ? "" : res.message;
+  }, []);
 
   return {
     setEnabled,
@@ -213,6 +204,28 @@ export function useMyAccount() {
   );
 
   /**
+   * 소속 파트를 바꿉니다. 관리자만 할 수 있습니다.
+   *
+   * 바꾸는 즉시 보이는 범위가 달라지므로, 목록을 들고 있는 화면은
+   * 다시 받아 와야 합니다. (여기서는 로그인 계정만 갱신합니다)
+   */
+  const setDivision = useCallback(
+    async (next: string): Promise<string> => {
+      if (account === null) return "계정을 찾을 수 없습니다.";
+
+      const res = await api.patch<Account>("/accounts/me/division", {
+        divisionId: next,
+      });
+
+      if (!res.ok) return res.message;
+
+      refresh(res.data);
+      return "";
+    },
+    [account, refresh],
+  );
+
+  /**
    * 로그인 유지 시간을 바꿉니다. null 이면 영구입니다.
    *
    * 바꾸는 즉시 지금 세션에도 적용됩니다. (백엔드가 기한을 다시 계산합니다)
@@ -247,5 +260,6 @@ export function useMyAccount() {
     setNotifyEnabled,
     changePassword,
     setSessionTtl,
+    setDivision,
   };
 }

@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ColorMode } from "@/components/ui/ColorMode";
 import { LockIcon, UserIcon } from "@/components/ui/icons";
 import { useAuth } from "@/lib/auth";
+import { PasswordSetupModal } from "@/components/auth/PasswordSetupModal";
 
 // "아이디 저장"에 체크했을 때 아이디를 담아 두는 자리입니다.
 const SAVED_ID_KEY = "nocode-saved-id";
@@ -33,7 +34,9 @@ function BackgroundBands() {
 
 // 로그인 화면입니다. 사이드바 없이 화면 전체를 씁니다.
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, setupPassword } = useAuth();
+  // 비밀번호를 아직 정하지 않은 계정이면 설정 창을 띄웁니다.
+  const [setupFor, setSetupFor] = useState("");
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +63,14 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      await login(username, password);
+      const result = await login(username, password);
+
+      if (result === "needs-setup") {
+        // 아직 비밀번호가 없는 계정입니다. 설정 창에서 정하고 바로 로그인합니다.
+        setSetupFor(username.trim());
+        setSubmitting(false);
+        return;
+      }
 
       if (remember) {
         window.localStorage.setItem(SAVED_ID_KEY, username.trim());
@@ -148,6 +158,13 @@ export default function LoginPage() {
                 </button>
               </div>
 
+              {/* 처음 로그인하는 사람에게는 입력할 비밀번호가 없습니다.
+                  안내가 없으면 아무 글자나 지어내 치게 되고, 그러고도
+                  설정 창이 떠서 "방금 그건 뭐였나" 하고 어리둥절해집니다. */}
+              <p className="mt-3 text-bt-text-s text-muted">
+                처음 로그인하시나요? 비밀번호 없이 아이디만 넣고 눌러 주세요.
+              </p>
+
               {/* 화면 모드 선택. 사이드바가 없는 화면이라 여기에 둡니다. */}
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <ColorMode />
@@ -193,6 +210,29 @@ export default function LoginPage() {
             Copyright © 2026 ydh. All rights reserved.
           </p>
         </div>
+
+        {/* 처음 로그인하는 계정이면 비밀번호를 정하는 창이 뜹니다.
+            정하고 나면 곧바로 로그인되고, AuthGate 가 첫 화면으로 보냅니다. */}
+        <PasswordSetupModal
+          open={setupFor !== ""}
+          loginId={setupFor}
+          onClose={() => setSetupFor("")}
+          onSubmit={async (newPassword) => {
+            try {
+              await setupPassword(setupFor, newPassword);
+
+              if (remember) {
+                window.localStorage.setItem(SAVED_ID_KEY, setupFor);
+              }
+
+              return "";
+            } catch (caught) {
+              return caught instanceof Error
+                ? caught.message
+                : "비밀번호를 설정하지 못했습니다.";
+            }
+          }}
+        />
       </div>
     </>
   );

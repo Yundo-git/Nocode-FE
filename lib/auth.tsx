@@ -19,7 +19,15 @@ type AuthValue = {
   status: AuthStatus;
   /** 로그인한 계정입니다. 백엔드가 세션을 보고 알려 준 값입니다. */
   account: Account | null;
-  login: (loginId: string, password: string) => Promise<void>;
+  /**
+   * 로그인합니다.
+   *
+   * 아직 비밀번호를 정하지 않은 계정이면 "needs-setup" 을 돌려줍니다.
+   * 그때는 화면이 설정 창을 띄우고 setupPassword() 를 부릅니다.
+   */
+  login: (loginId: string, password: string) => Promise<"ok" | "needs-setup">;
+  /** 첫 로그인에서 비밀번호를 정하고 바로 로그인합니다. */
+  setupPassword: (loginId: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   /** 내 정보가 바뀌었을 때 화면 전체가 같은 값을 보도록 갱신합니다. */
   refresh: (next: Account) => void;
@@ -28,7 +36,8 @@ type AuthValue = {
 const AuthContext = createContext<AuthValue>({
   status: "loading",
   account: null,
-  login: async () => {},
+  login: async () => "ok",
+  setupPassword: async () => {},
   logout: async () => {},
   refresh: () => {},
 });
@@ -99,21 +108,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, []);
 
-  const login = useCallback(async (loginId: string, password: string) => {
-    // 로그인은 상태를 바꾸는 요청이라 CSRF 토큰이 있어야 합니다.
-    await ensureCsrfToken();
+  const login = useCallback(
+    async (loginId: string, password: string): Promise<"ok" | "needs-setup"> => {
+      // 로그인은 상태를 바꾸는 요청이라 CSRF 토큰이 있어야 합니다.
+      await ensureCsrfToken();
 
-    const res = await api.post<Account>("/auth/login", { loginId, password });
+      const res = await api.post<Account | { needsPasswordSetup: true }>(
+        "/auth/login",
+        { loginId, password },
+      );
 
-    if (!res.ok) {
-      // 화면이 그대로 보여 줍니다. 백엔드는 아이디가 없는 것과
-      // 비밀번호가 틀린 것을 구분해서 알려 주지 않습니다.
-      throw new Error(res.message);
-    }
+      if (!res.ok) {
+        // 화면이 그대로 보여 줍니다. 백엔드는 아이디가 없는 것과
+        // 비밀번호가 틀린 것을 구분해서 알려 주지 않습니다.
+        throw new Error(res.message);
+      }
 
-    setAccount(res.data);
-    setStatus("authenticated");
-  }, []);
+      // 아직 비밀번호를 정하지 않은 계정입니다. 세션은 아직 없습니다.
+      if ("needsPasswordSetup" in res.data) return "needs-setup";
+
+      setAccount(res.data);
+      setStatus("authenticated");
+      return "ok";
+    },
+    [],
+  );
+
+  const setupPassword = useCallback(
+    async (loginId: string, newPassword: string) => {
+      await ensureCsrfToken();
+
+      const res = await api.post<Account>("/auth/setup-password", {
+        loginId,
+        newPassword,
+      });
+
+      if (!res.ok) throw new Error(res.message);
+
+      // 설정과 동시에 로그인됩니다.
+      setAccount(res.data);
+      setStatus("authenticated");
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     // 서버에서 세션을 지웁니다. 브라우저 값만 지우면 쿠키는 살아 있습니다.
@@ -128,8 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, account, login, logout, refresh }),
-    [status, account, login, logout, refresh],
+    () => ({ status, account, login, setupPassword, logout, refresh }),
+    [status, account, login, setupPassword, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

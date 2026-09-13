@@ -23,7 +23,18 @@ export function canManageAccounts(account: Account): boolean {
 //
 // 관리자도 소속 파트만 다룹니다. 일반 계정도 소속 파트만 봅니다.
 // 전체를 볼 수 있는 최고 관리자가 필요해지면 여기에 역할을 하나 더 두면 됩니다.
-export function canAccessDivision(
+/**
+ * 자기 소속 파트를 스스로 바꿀 수 있는가.
+ *
+ * ★ 자기가 볼 수 있는 범위를 스스로 옮기는 일입니다.
+ *   관리자에게 파트 경계는 "막는 벽" 이 아니라 "지금 보고 있는 창" 이 됩니다.
+ *   일반 계정은 바꿀 수 없습니다.
+ */
+export function canChangeOwnDivision(account: Account): boolean {
+  return account.role === "superadmin" || account.role === "admin";
+}
+
+function canAccessDivision(
   account: Account,
   divisionId: BusinessDivisionId,
 ): boolean {
@@ -33,10 +44,3 @@ export function canAccessDivision(
   return account.divisionId === divisionId;
 }
 
-// 목록에서 이 계정이 볼 수 있는 것만 남깁니다.
-export function filterByDivision<T extends { divisionId: BusinessDivisionId }>(
-  account: Account,
-  items: readonly T[],
-): readonly T[] {
-  return items.filter((item) => canAccessDivision(account, item.divisionId));
-}
