@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { FormRow } from "@/components/ui/FormRow";
 import { Toggle } from "@/components/ui/Toggle";
 import {
   BUSINESS_DIVISIONS,
@@ -101,7 +102,7 @@ export function ServerRegisterModal({
     <Modal open={open} title="서버 등록" onClose={onClose} closeOnBackdrop={false}>
       <form onSubmit={handleSubmit} className="px-4 py-4">
         <div className="space-y-3">
-          <Row label="IP" htmlFor="new-ip">
+          <FormRow required label="IP" htmlFor="new-ip">
             <input
               id="new-ip"
               type="text"
@@ -111,9 +112,9 @@ export function ServerRegisterModal({
               placeholder="1.1.1.1"
               className="input w-full font-mono"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="타입" htmlFor="new-type">
+          <FormRow required label="타입" htmlFor="new-type">
             <select
               id="new-type"
               value={draft.type}
@@ -129,9 +130,9 @@ export function ServerRegisterModal({
                 </option>
               ))}
             </select>
-          </Row>
+          </FormRow>
 
-          <Row label="업무구분" htmlFor="new-division">
+          <FormRow required label="업무구분" htmlFor="new-division">
             <select
               id="new-division"
               value={draft.divisionId}
@@ -150,9 +151,9 @@ export function ServerRegisterModal({
                 </option>
               ))}
             </select>
-          </Row>
+          </FormRow>
 
-          <Row label="영문명" htmlFor="new-name-en">
+          <FormRow required label="영문명" htmlFor="new-name-en">
             <input
               id="new-name-en"
               type="text"
@@ -161,9 +162,9 @@ export function ServerRegisterModal({
               placeholder="test-server-01"
               className="input w-full font-mono"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="한글명" htmlFor="new-name-ko">
+          <FormRow required label="한글명" htmlFor="new-name-ko">
             <input
               id="new-name-ko"
               type="text"
@@ -172,9 +173,9 @@ export function ServerRegisterModal({
               placeholder="테스트 서버"
               className="input w-full"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="사용여부">
+          <FormRow required label="사용여부">
             <div className="flex items-center gap-2">
               <Toggle
                 checked={draft.enabled}
@@ -187,7 +188,7 @@ export function ServerRegisterModal({
                   : "핑을 보내지 않고 목록에만 올립니다"}
               </span>
             </div>
-          </Row>
+          </FormRow>
         </div>
 
         {error ? (
@@ -208,25 +209,3 @@ export function ServerRegisterModal({
 }
 
 // 라벨과 입력칸을 한 줄로 묶습니다. 모두 필수라 라벨 옆에 * 를 답니다.
-function Row({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  htmlFor?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-      <label
-        htmlFor={htmlFor}
-        className="shrink-0 text-b2_body_m font-medium text-secondary sm:w-20"
-      >
-        {label}
-        <span className="ml-0.5 text-down-500">*</span>
-      </label>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  );
-}

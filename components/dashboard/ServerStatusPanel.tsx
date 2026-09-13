@@ -1,5 +1,9 @@
 import { HealthDonut } from "@/components/dashboard/HealthDonut";
+import { PingPulse } from "@/components/dashboard/PingPulse";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { formatAgo } from "@/lib/dashboard/duration";
+import type { CSSProperties } from "react";
+import { useFlashOnChange } from "@/lib/useFlashOnChange";
 import { STALE_AFTER_MS, type DashboardSummary } from "@/lib/dashboard/types";
 
 type ServerStatusPanelProps = {
@@ -23,10 +27,27 @@ export function ServerStatusPanel({
   loading,
   now,
 }: ServerStatusPanelProps) {
+  // 훅은 늘 같은 순서로 불려야 해서, 아래 early return 보다 위에 둡니다.
+  // 건수가 바뀐 순간에만 한 번 번쩍입니다.
+  const todayFlash = useFlashOnChange(summary.todayDownCount);
+
   if (loading) {
+    // 글자만 띄우면 내용이 채워질 때 배치가 크게 튑니다.
+    // 실제와 비슷한 자리를 미리 잡아 둡니다.
     return (
-      <div className="flex h-full items-center justify-center text-b2_body_r text-muted">
-        불러오는 중입니다.
+      <div className="grid h-full grid-cols-1 items-center gap-6 lg:grid-cols-3">
+        {[0, 1, 2].map((key) => (
+          <div key={key} className="flex items-center justify-center gap-4">
+            <Skeleton circle className="h-[164px] w-[164px]" />
+            <div className="w-[104px] space-y-1.5">
+              <Skeleton className="h-4 w-14" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -56,13 +77,18 @@ export function ServerStatusPanel({
 
       {/* 감시가 돌고 있는지와, 지금 순간만으로는 안 보이는 값입니다. */}
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-line pt-3 text-bt-text-m">
-        <span
-          className={stale ? "font-bold text-down-500" : "text-muted"}
-          title={stale ? "핑이 예정대로 돌지 않고 있습니다" : undefined}
-        >
-          {lastCheckedAt === null
-            ? "확인 기록 없음"
-            : `마지막 점검 ${formatAgo(lastCheckedAt, now)}${stale ? " ⚠" : ""}`}
+        <span className="flex flex-col items-center">
+          <span
+            className={stale ? "font-bold text-down-500" : "text-muted"}
+            title={stale ? "핑이 예정대로 돌지 않고 있습니다" : undefined}
+          >
+            {lastCheckedAt === null
+              ? "확인 기록 없음"
+              : `마지막 점검 ${formatAgo(lastCheckedAt, now)}${stale ? " ⚠" : ""}`}
+          </span>
+
+          {/* 핑이 도는 박자입니다. 멈추면 선이 가득 찬 채 서 있습니다. */}
+          <PingPulse lastCheckedAt={lastCheckedAt} now={now} stale={stale} />
         </span>
 
         <span className="text-line-strong">·</span>
@@ -70,9 +96,11 @@ export function ServerStatusPanel({
         {/* 하루에 여러 번 끊겼다 붙는 장비는 지금 순간엔 정상이라
             위 도넛에 잡히지 않습니다. 그것을 드러내는 숫자입니다. */}
         <span
-          className={
+          className={`px-1 ${todayFlash ? "animate-flash" : ""} ${
             todayDownCount > 0 ? "font-semibold text-down-500" : "text-muted"
-          }
+          }`}
+          // 기본 강조색 대신 눈에 띄는 색으로 한 번 번쩍입니다.
+          style={{ "--flash-color": "var(--row-hover)" } as CSSProperties}
         >
           오늘 장애 {todayDownCount}건
         </span>

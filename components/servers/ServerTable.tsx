@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { Pagination } from "@/components/ui/Pagination";
+import { formatDateTime } from "@/lib/datetime";
 import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
 import { Toggle } from "@/components/ui/Toggle";
 import {
@@ -67,6 +69,32 @@ export function ServerTable({
   onToggleEnabled,
   onRegisterClick,
 }: ServerTableProps) {
+  // 방금 등록된 줄을 잠깐 표시해 줍니다.
+  // "내가 한 것이 반영됐다" 를 보여 주는 용도라, 처음 목록에는 쓰지 않습니다.
+  const [freshIds, setFreshIds] = useState<ReadonlySet<string>>(new Set());
+  const seenRef = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    const ids = rows.map((row) => row.id);
+
+    if (seenRef.current === null) {
+      seenRef.current = new Set(ids);
+      return;
+    }
+
+    const seen = seenRef.current;
+    const fresh = new Set(ids.filter((id) => !seen.has(id)));
+
+    if (fresh.size === 0) return;
+
+    for (const id of fresh) seen.add(id);
+    setFreshIds(fresh);
+
+    // 잠깐 표시한 뒤 원래대로 둡니다.
+    const timer = setTimeout(() => setFreshIds(new Set()), 1500);
+    return () => clearTimeout(timer);
+  }, [rows]);
+
   // 이번 쪽이 전부 선택돼 있는지 봅니다. 빈 쪽은 선택된 것으로 치지 않습니다.
   const allOnPageSelected =
     rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
@@ -187,7 +215,10 @@ export function ServerTable({
               </tr>
             ) : (
               rows.map((server) => (
-                <tr key={server.id}>
+                <tr
+                  key={server.id}
+                  className={freshIds.has(server.id) ? "animate-flash" : ""}
+                >
                   <td className="center">
                     <input
                       type="checkbox"
@@ -233,17 +264,3 @@ export function ServerTable({
 // 2026-09-12 11:48:20 형태로 보여 줍니다.
 // toLocaleString 은 서버와 브라우저의 시간대/언어 설정이 달라 결과가 어긋날 수 있어
 // 직접 자릿수를 맞춥니다.
-function formatDateTime(iso: string): string {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) {
-    return "-";
-  }
-
-  const pad = (value: number) => String(value).padStart(2, "0");
-
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
-    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
-  );
-}

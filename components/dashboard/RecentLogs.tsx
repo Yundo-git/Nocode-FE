@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api/client";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { formatShortWithSeconds } from "@/lib/datetime";
 import { LOG_TYPE_LABEL, type LogEntry, type LogPage, type LogType } from "@/lib/logs/types";
 
 // 최근 몇 건만 보여 줍니다. 전체 조회는 로그조회 화면에서 합니다.
@@ -20,6 +22,10 @@ const TYPE_CLASS: Record<LogType, string> = {
 // 대시보드의 실시간 로그입니다.
 export function RecentLogs() {
   const [rows, setRows] = useState<readonly LogEntry[]>([]);
+  // 이번에 새로 들어온 줄만 기억합니다. 전부 움직이면 어지럽습니다.
+  const [freshIds, setFreshIds] = useState<ReadonlySet<string>>(new Set());
+  // 처음 화면을 채울 때는 움직이지 않습니다. 새로 생긴 것이 아니니까요.
+  const seenRef = useRef<Set<string> | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
@@ -35,7 +41,22 @@ export function RecentLogs() {
         return;
       }
 
-      setRows(res.data.rows);
+      const incoming = res.data.rows;
+
+      if (seenRef.current === null) {
+        // 첫 응답: 전부 "이미 있던 것" 으로 칩니다.
+        seenRef.current = new Set(incoming.map((log) => log.id));
+      } else {
+        const seen = seenRef.current;
+        const fresh = new Set(
+          incoming.filter((log) => !seen.has(log.id)).map((log) => log.id),
+        );
+
+        for (const id of fresh) seen.add(id);
+        setFreshIds(fresh);
+      }
+
+      setRows(incoming);
       setStatus("ready");
     };
 
@@ -49,7 +70,18 @@ export function RecentLogs() {
   }, []);
 
   if (status === "loading") {
-    return <Center>불러오는 중입니다.</Center>;
+    return (
+      <div className="space-y-2 py-1">
+        {[0, 1, 2, 3, 4, 5].map((key) => (
+          <div key={key} className="flex items-center gap-3">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 flex-1" />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (status === "error") {
@@ -67,10 +99,12 @@ export function RecentLogs() {
         {rows.map((log) => (
           <li
             key={log.id}
-            className="flex items-baseline gap-3 px-1 py-1.5 text-b2_body_r"
+            className={`flex items-baseline gap-3 px-1 py-1.5 text-b2_body_r ${
+              freshIds.has(log.id) ? "animate-slide-in" : ""
+            }`}
           >
             <span className="shrink-0 font-mono tabular-nums text-muted">
-              {formatTime(log.occurredAt)}
+              {formatShortWithSeconds(log.occurredAt)}
             </span>
             <span className={`w-20 shrink-0 ${TYPE_CLASS[log.type]}`}>
               {LOG_TYPE_LABEL[log.type]}
@@ -113,12 +147,3 @@ function Center({
 }
 
 // 09-12 23:07:11 형태입니다. 오늘 것만 보는 게 아니라 날짜도 짧게 답니다.
-function formatTime(iso: string): string {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const pad = (value: number) => String(value).padStart(2, "0");
-
-  return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}

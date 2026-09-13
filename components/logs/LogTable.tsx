@@ -1,4 +1,5 @@
 import { Pagination } from "@/components/ui/Pagination";
+import { formatDateTime } from "@/lib/datetime";
 import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
 import { LOG_TYPE_LABEL, type LogEntry, type LogType } from "@/lib/logs/types";
 
@@ -117,15 +118,3 @@ export function LogTable({
 
 // 2026-09-12 11:48:20 형태입니다.
 // toLocaleString 은 브라우저 설정에 따라 모양이 달라져 직접 맞춥니다.
-function formatDateTime(iso: string): string {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const pad = (value: number) => String(value).padStart(2, "0");
-
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
-    `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
-  );
-}

@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { FormRow } from "@/components/ui/FormRow";
 import {
   ACCOUNT_ROLES,
   ROLE_LABEL,
@@ -133,7 +134,7 @@ export function AccountFormModal({
     >
       <form onSubmit={handleSubmit} className="px-4 py-4">
         <div className="space-y-3">
-          <Row label="아이디" htmlFor="acc-login-id">
+          <FormRow required label="아이디" htmlFor="acc-login-id">
             <input
               id="acc-login-id"
               type="text"
@@ -142,9 +143,9 @@ export function AccountFormModal({
               placeholder="admin.control"
               className="input w-full font-mono"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="이름" htmlFor="acc-name">
+          <FormRow required label="이름" htmlFor="acc-name">
             <input
               id="acc-name"
               type="text"
@@ -152,9 +153,9 @@ export function AccountFormModal({
               onChange={(event) => update("name", event.currentTarget.value)}
               className="input w-full"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="이메일" htmlFor="acc-email">
+          <FormRow required label="이메일" htmlFor="acc-email">
             <input
               id="acc-email"
               type="email"
@@ -163,9 +164,9 @@ export function AccountFormModal({
               placeholder="name@example.com"
               className="input w-full"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="번호" htmlFor="acc-phone">
+          <FormRow required label="번호" htmlFor="acc-phone">
             <input
               id="acc-phone"
               type="tel"
@@ -174,9 +175,9 @@ export function AccountFormModal({
               placeholder="010-1234-5678"
               className="input w-full"
             />
-          </Row>
+          </FormRow>
 
-          <Row label="업무파트" htmlFor="acc-division">
+          <FormRow required label="업무파트" htmlFor="acc-division">
             <select
               id="acc-division"
               value={draft.divisionId}
@@ -195,9 +196,9 @@ export function AccountFormModal({
                 </option>
               ))}
             </select>
-          </Row>
+          </FormRow>
 
-          <Row label="권한" htmlFor="acc-role">
+          <FormRow required label="권한" htmlFor="acc-role">
             <select
               id="acc-role"
               value={draft.role}
@@ -212,7 +213,7 @@ export function AccountFormModal({
                 </option>
               ))}
             </select>
-          </Row>
+          </FormRow>
         </div>
 
         {/* 비밀번호는 아직 저장할 곳이 없습니다. NOTES.md 4-8 참고. */}
@@ -274,25 +275,3 @@ export function AccountFormModal({
 }
 
 // 라벨과 입력칸을 한 줄로 묶습니다. 모두 필수라 * 를 답니다.
-function Row({
-  label,
-  htmlFor,
-  children,
-}: {
-  label: string;
-  htmlFor: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-      <label
-        htmlFor={htmlFor}
-        className="shrink-0 text-b2_body_m font-medium text-secondary sm:w-20"
-      >
-        {label}
-        <span className="ml-0.5 text-down-500">*</span>
-      </label>
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  );
-}

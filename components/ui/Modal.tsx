@@ -88,7 +88,8 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="panel relative z-10 flex max-h-[80dvh] w-full max-w-[420px] flex-col shadow-soft outline-none"
+        // 뜰 때만 움직입니다. 닫을 때도 기다리게 하면 답답합니다.
+        className="panel animate-modal-in relative z-10 flex max-h-[80dvh] w-full max-w-[420px] flex-col shadow-soft outline-none"
       >
         <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
           <h2 className="truncate text-s2 font-semibold text-body">{title}</h2>

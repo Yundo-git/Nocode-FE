@@ -10,6 +10,13 @@ export default function Document() {
   return (
     <Html lang="ko">
       <Head>
+        {/* 파비콘.
+            최신 브라우저는 svg 를 먼저 씁니다. 확대해도 흐려지지 않습니다.
+            svg 를 모르는 브라우저는 아래 ico 로 넘어갑니다. */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </Head>
       <body>

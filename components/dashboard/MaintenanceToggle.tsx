@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatShort } from "@/lib/datetime";
 import { useSettings } from "@/lib/settings/useSettings";
 
 // 작업 모드 버튼입니다.
@@ -27,7 +28,7 @@ export function MaintenanceToggle() {
 
       {on && settings.maintenanceSince !== null ? (
         <span className="text-bt-text-s text-muted">
-          {formatSince(settings.maintenanceSince)}부터
+          {formatShort(settings.maintenanceSince)}부터
           {settings.maintenanceBy ? ` · ${settings.maintenanceBy}` : ""}
         </span>
       ) : null}
@@ -50,12 +51,3 @@ export function MaintenanceToggle() {
 }
 
 // 09-12 23:07 형태로 짧게 보여 줍니다.
-function formatSince(iso: string): string {
-  const date = new Date(iso);
-
-  if (Number.isNaN(date.getTime())) return "-";
-
-  const pad = (value: number) => String(value).padStart(2, "0");
-
-  return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
