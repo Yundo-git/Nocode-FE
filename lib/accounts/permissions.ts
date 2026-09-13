@@ -11,12 +11,12 @@ import type { Account } from "@/lib/accounts/types";
 
 // 서버를 등록·수정할 수 있는가.
 export function canManageServers(account: Account): boolean {
-  return account.role === "admin";
+  return account.role === "superadmin" || account.role === "admin";
 }
 
 // 계정을 만들고 고칠 수 있는가.
 export function canManageAccounts(account: Account): boolean {
-  return account.role === "admin";
+  return account.role === "superadmin" || account.role === "admin";
 }
 
 // 이 업무구분(파트)을 다룰 수 있는가.
@@ -27,6 +27,9 @@ export function canAccessDivision(
   account: Account,
   divisionId: BusinessDivisionId,
 ): boolean {
+  // 총괄은 모든 파트를 봅니다.
+  if (account.role === "superadmin") return true;
+
   return account.divisionId === divisionId;
 }
 

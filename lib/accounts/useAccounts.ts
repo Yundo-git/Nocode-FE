@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
 import type {
   Account,
@@ -141,72 +141,81 @@ export function useAccounts() {
 
 // 로그인한 본인의 계정입니다.
 //
-// 지금은 로그인에 세션이 없어서, 목록에서 아이디가 같은 줄을 찾아 씁니다.
-// 백엔드가 붙으면 GET /api/accounts/me 로 바꿔야 합니다.
-// (지금 방식은 아이디만 알면 남의 정보도 볼 수 있습니다)
+// ★ 예전에는 계정 목록을 통째로 받아 loginId 가 같은 줄을 찾아 썼습니다.
+//   아이디만 알면 남의 정보를 볼 수 있는 방식이었습니다. (NOTES.md 4-6)
+//
+//   지금은 백엔드가 세션을 보고 "지금 누구인지" 를 알려 줍니다.
+//   목록을 받을 필요도 없고, 남의 줄을 집어 올 수도 없습니다.
 export function useMyAccount() {
-  const { user } = useAuth();
-  const { accounts, status } = useAccounts();
-
-  const found = useMemo(() => {
-    if (user === null) return null;
-    return accounts.find((item) => item.loginId === user.username) ?? null;
-  }, [accounts, user]);
-
+  const { account, status: authStatus, refresh } = useAuth();
   const [saving, setSaving] = useState(false);
 
-  // 화면에 보이는 계정을 바로 바꿔 두기 위한 덮어쓰기 값입니다.
-  // (useAccounts 의 목록은 이 훅에서 다시 불러오지 않습니다)
-  const [override, setOverride] = useState<Account | null>(null);
-
-  // 저장 결과가 있으면 그것을, 없으면 목록에서 찾은 값을 씁니다.
-  const current = override ?? found;
+  const status: LoadStatus =
+    authStatus === "loading" ? "loading" : account === null ? "error" : "ready";
 
   // 알림 받기를 켜고 끕니다.
   // 누른 즉시 화면을 바꾸고, 저장이 실패하면 되돌립니다.
   const setNotifyEnabled = useCallback(
     async (next: boolean): Promise<string> => {
-      if (current === null) return "계정을 찾을 수 없습니다.";
+      if (account === null) return "계정을 찾을 수 없습니다.";
 
-      const before = current;
-      setOverride({ ...before, notifyEnabled: next });
+      const before = account;
+      refresh({ ...before, notifyEnabled: next });
 
-      const res = await api.patch<Account>(`/accounts/${before.id}`, {
+      // ★ 주소에 id 를 넣지 않습니다. 본인 것만 바꿀 수 있는 주소입니다.
+      const res = await api.patch<Account>("/accounts/me/notify", {
         notifyEnabled: next,
       });
 
       if (!res.ok) {
-        setOverride(before);
+        refresh(before);
         return res.message;
       }
 
-      setOverride(res.data);
+      refresh(res.data);
       return "";
     },
-    [current],
+    [account, refresh],
   );
 
   const saveProfile = useCallback(
     async (input: MyProfileInput): Promise<string> => {
-      if (current === null) return "계정을 찾을 수 없습니다.";
+      if (account === null) return "계정을 찾을 수 없습니다.";
 
       setSaving(true);
 
       try {
-        const res = await api.patch<Account>(`/accounts/${current.id}`, input);
+        const res = await api.patch<Account>("/accounts/me", input);
 
-        if (!res.ok) {
-          return res.message;
-        }
+        if (!res.ok) return res.message;
 
-        setOverride(res.data);
+        refresh(res.data);
         return "";
       } finally {
         setSaving(false);
       }
     },
-    [current],
+    [account, refresh],
   );
 
-  return { account: current, status, saving, saveProfile, setNotifyEnabled };
+  /**
+   * 비밀번호를 바꿉니다.
+   *
+   * ★ 성공하면 **모든 세션이 끊깁니다.** 다시 로그인해야 합니다.
+   *   비밀번호가 샜을까 봐 바꾸는 것인데, 훔쳐 간 사람의 창이 살아 있으면
+   *   바꾼 의미가 없기 때문입니다.
+   */
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string): Promise<string> => {
+      const res = await api.put<null>("/accounts/me/password", {
+        currentPassword,
+        newPassword,
+      });
+
+      return res.ok ? "" : res.message;
+    },
+    [],
+  );
+
+  return { account, status, saving, saveProfile, setNotifyEnabled, changePassword };
 }

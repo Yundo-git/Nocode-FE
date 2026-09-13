@@ -42,7 +42,8 @@ function applyFilters(
 }
 
 export default function AccountsPage() {
-  const { user } = useAuth();
+  // 지금 보고 있는 사람은 백엔드가 세션을 보고 알려 줍니다.
+  const { account: me } = useAuth();
   const {
     accounts,
     status,
@@ -52,15 +53,8 @@ export default function AccountsPage() {
     removeAccount,
   } = useAccounts();
 
-  // 지금 보고 있는 사람이 누구인지는 아이디로만 알 수 있습니다.
-  // 세션이 없어서, 이 판단은 화면을 정리해 줄 뿐 보안이 되지 못합니다. (NOTES.md 4-5)
-  const me = useMemo(
-    () =>
-      user === null
-        ? null
-        : (accounts.find((item) => item.loginId === user.username) ?? null),
-    [accounts, user],
-  );
+  // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
+  // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireAccountManager)
   const canManage = me !== null && canManageAccounts(me);
 
   // null 이면 새로 만드는 창, 값이 있으면 그 계정을 고치는 창입니다.

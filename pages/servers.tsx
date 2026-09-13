@@ -39,9 +39,17 @@ function applyFilters(
     if (filters.status && getDisplayState(server) !== filters.status) return false;
 
     // 날짜는 YYYY-MM-DD 문자열끼리 비교해도 순서가 맞습니다.
-    const checkedDate = server.checkedAt.slice(0, 10);
-    if (filters.from && checkedDate < filters.from) return false;
-    if (filters.to && checkedDate > filters.to) return false;
+    //
+    // 아직 한 번도 확인하지 않은 장비(checkedAt === null)는
+    // 기간 조건을 걸면 빠집니다. "그 기간에 확인된 것" 을 찾는 조건인데
+    // 확인된 적이 없으니 해당하지 않습니다.
+    if (filters.from || filters.to) {
+      if (server.checkedAt === null) return false;
+
+      const checkedDate = server.checkedAt.slice(0, 10);
+      if (filters.from && checkedDate < filters.from) return false;
+      if (filters.to && checkedDate > filters.to) return false;
+    }
 
     return true;
   });

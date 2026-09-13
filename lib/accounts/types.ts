@@ -2,14 +2,19 @@ import type { BusinessDivisionId } from "@/lib/businessDivisions";
 
 // 계정 권한입니다.
 //
-// admin  : 파트 관리자. 소속 파트의 서버 등록과 계정 관리를 할 수 있습니다.
-//          다른 파트는 건드릴 수 없습니다.
-// viewer : 일반 모니터링 계정. 보기만 합니다.
-export type AccountRole = "admin" | "viewer";
+// superadmin : 개발·운영 총괄. **모든 파트**를 다룹니다.
+// admin      : 파트 관리자. 소속 파트의 서버 등록과 계정 관리를 할 수 있습니다.
+//              다른 파트는 건드릴 수 없습니다.
+// viewer     : 일반 모니터링 계정. 보기만 합니다.
+export type AccountRole = "superadmin" | "admin" | "viewer";
 
+// ★ 등록 화면의 선택지입니다. superadmin 을 일부러 뺐습니다.
+//   총괄 권한은 화면에서 주지 않습니다.
+//   (백엔드도 superadmin 만 superadmin 을 부여할 수 있게 막고 있습니다)
 export const ACCOUNT_ROLES: readonly AccountRole[] = ["admin", "viewer"];
 
 export const ROLE_LABEL: Record<AccountRole, string> = {
+  superadmin: "총괄 관리자",
   admin: "파트 관리자",
   viewer: "일반",
 };

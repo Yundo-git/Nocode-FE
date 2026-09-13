@@ -27,8 +27,15 @@ export type Server = {
   readonly status: ServerStatus;
   /** 마지막 응답 시간(ms)입니다. 응답이 없으면 null 입니다. */
   readonly responseMs: number | null;
-  /** 마지막으로 확인한 시각입니다. ISO 문자열로 둡니다. */
-  readonly checkedAt: string;
+  /**
+   * 마지막으로 확인한 시각입니다. ISO 문자열입니다.
+   *
+   * ★ 아직 한 번도 핑을 쏘지 않았으면 null 입니다.
+   *   등록 직후가 그렇습니다. 예전 목 구현은 등록하자마자 "지금" 을 넣고
+   *   상태를 up 으로 지어냈지만, 실제로는 핑을 쏴 봐야 알 수 있습니다.
+   *   화면은 null 이면 "확인 기록 없음" 으로 보여 줍니다.
+   */
+  readonly checkedAt: string | null;
   /** 감시를 켜 둘지 여부입니다. 목록의 토글과 연결됩니다. */
   readonly enabled: boolean;
 };

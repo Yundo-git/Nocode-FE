@@ -28,7 +28,10 @@ export function formatTime(iso: string): string {
 }
 
 // 2026-09-13 11:48:20
-export function formatDateTime(iso: string): string {
+export function formatDateTime(iso: string | null): string {
+  // 아직 한 번도 확인하지 않은 장비는 null 입니다. (등록 직후)
+  if (iso === null) return "-";
+
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) return "-";

@@ -7,87 +7,112 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { api, ensureCsrfToken } from "@/lib/api/client";
+import type { Account } from "@/lib/accounts/types";
 
-// loading  : 저장된 로그인 정보를 아직 확인하는 중입니다.
+// loading       : 로그인 상태를 아직 확인하는 중입니다.
 // authenticated : 로그인한 상태입니다.
-// guest    : 로그인하지 않은 상태입니다.
+// guest         : 로그인하지 않은 상태입니다.
 export type AuthStatus = "loading" | "authenticated" | "guest";
-
-export type User = {
-  username: string;
-};
-
-const STORAGE_KEY = "nocode-auth";
 
 type AuthValue = {
   status: AuthStatus;
-  user: User | null;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  /** 로그인한 계정입니다. 백엔드가 세션을 보고 알려 준 값입니다. */
+  account: Account | null;
+  login: (loginId: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  /** 내 정보가 바뀌었을 때 화면 전체가 같은 값을 보도록 갱신합니다. */
+  refresh: (next: Account) => void;
 };
 
 const AuthContext = createContext<AuthValue>({
   status: "loading",
-  user: null,
+  account: null,
   login: async () => {},
-  logout: () => {},
+  logout: async () => {},
+  refresh: () => {},
 });
 
-// 아직 백엔드가 없어서 로그인 검사를 브라우저에서 흉내 냅니다.
-// 지금은 아이디와 비밀번호가 비어 있지만 않으면 통과합니다.
-// 실제 인증이 붙으면 이 함수 안만 API 호출로 바꾸면 됩니다.
-async function requestLogin(username: string, password: string): Promise<User> {
-  const id = username.trim();
-
-  if (!id || !password) {
-    throw new Error("아이디와 비밀번호를 모두 입력해 주세요.");
-  }
-
-  return { username: id };
-}
-
-// 앱 전체에서 같은 로그인 상태를 쓰도록 감싸 주는 컴포넌트입니다.
+// 로그인 상태를 다루는 곳입니다.
+//
+// ★ 예전에는 여기서 로그인을 흉내 냈습니다.
+//   아이디·비밀번호가 비어 있지만 않으면 통과시키고 localStorage 에 적었습니다.
+//   개발자 도구로 그 값을 직접 넣으면 로그인 화면을 건너뛸 수 있었습니다.
+//
+//   지금은 백엔드가 판단합니다.
+//   - 비밀번호를 scrypt 해시로 대조합니다
+//   - 세션은 httpOnly 쿠키라 스크립트가 읽거나 만들 수 없습니다
+//   - 로그인 여부는 매번 서버에 물어봅니다 (GET /api/auth/me)
+//
+//   그래서 브라우저 쪽에 "로그인했다" 고 적어 두는 값이 아예 없습니다.
+//   꾸며 낼 것이 없으니 꾸며 낼 수도 없습니다.
 export function AuthProvider({ children }: { children: ReactNode }) {
   // 서버에서 그린 화면과 브라우저 첫 화면이 같아야 하므로
-  // 저장된 값을 읽지 않고 항상 "확인 중"(loading) 으로 시작합니다.
+  // 항상 "확인 중"(loading) 으로 시작합니다.
   const [status, setStatus] = useState<AuthStatus>("loading");
-  const [user, setUser] = useState<User | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
 
+  // 화면이 뜨면 "지금 누구인지" 를 서버에 물어봅니다.
+  // 쿠키가 없거나 세션이 만료됐으면 401 이 오고 guest 가 됩니다.
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      const parsed = saved ? (JSON.parse(saved) as Partial<User>) : null;
+    let alive = true;
 
-      if (parsed && typeof parsed.username === "string" && parsed.username) {
-        setUser({ username: parsed.username });
+    void (async () => {
+      const res = await api.get<Account>("/auth/me");
+
+      if (!alive) return;
+
+      if (res.ok) {
+        setAccount(res.data);
         setStatus("authenticated");
         return;
       }
-    } catch {
-      // 저장된 값이 깨져 있으면 지우고 로그아웃 상태로 둡니다.
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
 
-    setStatus("guest");
+      // 로그인 화면에서 바로 로그인할 수 있도록 CSRF 토큰을 받아 둡니다.
+      await ensureCsrfToken();
+
+      if (!alive) return;
+
+      setAccount(null);
+      setStatus("guest");
+    })();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const next = await requestLogin(username, password);
+  const login = useCallback(async (loginId: string, password: string) => {
+    // 로그인은 상태를 바꾸는 요청이라 CSRF 토큰이 있어야 합니다.
+    await ensureCsrfToken();
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setUser(next);
+    const res = await api.post<Account>("/auth/login", { loginId, password });
+
+    if (!res.ok) {
+      // 화면이 그대로 보여 줍니다. 백엔드는 아이디가 없는 것과
+      // 비밀번호가 틀린 것을 구분해서 알려 주지 않습니다.
+      throw new Error(res.message);
+    }
+
+    setAccount(res.data);
     setStatus("authenticated");
   }, []);
 
-  const logout = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
-    setUser(null);
+  const logout = useCallback(async () => {
+    // 서버에서 세션을 지웁니다. 브라우저 값만 지우면 쿠키는 살아 있습니다.
+    await api.post<null>("/auth/logout", {});
+
+    setAccount(null);
     setStatus("guest");
   }, []);
 
+  const refresh = useCallback((next: Account) => {
+    setAccount(next);
+  }, []);
+
   const value = useMemo(
-    () => ({ status, user, login, logout }),
-    [status, user, login, logout],
+    () => ({ status, account, login, logout, refresh }),
+    [status, account, login, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
