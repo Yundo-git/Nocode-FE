@@ -39,8 +39,8 @@ export function formatDateTime(iso: string | null): string {
   return `${formatDate(iso)} ${formatTime(iso)}`;
 }
 
-// 09-13 11:48  (좁은 자리에 씁니다)
-export function formatShort(iso: string): string {
+// 09-13 11:48  (해가 바뀌는 일이 드물어 연도를 뺍니다)
+function formatShort(iso: string): string {
   const date = new Date(iso);
 
   if (Number.isNaN(date.getTime())) return "-";

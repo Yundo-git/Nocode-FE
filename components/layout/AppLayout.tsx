@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   // 권한이 없어 되돌려 보내진 경우, 그 이유를 쪽지로 알려 줍니다.
   //
   // 옮겨 온 뒤에 띄웁니다. 옮기기 전 화면은 이미 사라졌기 때문입니다.
-  // 브라우저 저장소는 화면이 뜬 뒤에 읽어야 합니다. (NOTES.md 5-4)
+  // 브라우저 저장소는 화면이 뜬 뒤에 읽어야 합니다.
   const [notice, setNotice] = useState("");
   const { asPath } = useRouter();
 

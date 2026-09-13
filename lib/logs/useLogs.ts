@@ -1,109 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/api/client";
-import { downloadFile } from "@/lib/api/download";
-import { EMPTY_LOG_QUERY, type LogPage, type LogQuery } from "@/lib/logs/types";
+import { useServerQuery } from "@/lib/useServerQuery";
+import { EMPTY_LOG_QUERY, type LogEntry, type LogQuery } from "@/lib/logs/types";
 
-export type LogStatus = "loading" | "ready" | "error";
-
-// 조건을 주소 뒤에 붙일 문자열로 바꿉니다. 빈 값은 보내지 않습니다.
-function toSearch(query: LogQuery): string {
-  const params = new URLSearchParams();
-
-  params.set("page", String(query.page));
-  params.set("pageSize", String(query.pageSize));
-
-  if (query.from) params.set("from", query.from);
-  if (query.to) params.set("to", query.to);
-  if (query.serverId) params.set("serverId", query.serverId);
-  if (query.keyword.trim()) params.set("keyword", query.keyword.trim());
-  if (query.type) params.set("type", query.type);
-  if (query.divisionId) params.set("divisionId", query.divisionId);
-
-  return params.toString();
-}
-
-// 로그 조회 상태입니다.
-//
-// 조건과 쪽 번호를 서버로 보내고 그 쪽만 받아 옵니다.
-// (서버관리·계정관리도 이제 같은 방식입니다)
+// 로그조회 상태입니다. 조건과 쪽 번호를 서버로 보내고 그 쪽만 받아 옵니다.
+// 실제 일은 공용 훅이 합니다. (작업이력과 같은 것을 씁니다)
 export function useLogs() {
-  const [query, setQuery] = useState<LogQuery>(EMPTY_LOG_QUERY);
-  const [page, setPage] = useState<LogPage>({ rows: [], totalCount: 0 });
-  const [status, setStatus] = useState<LogStatus>("loading");
-  const [downloading, setDownloading] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-
-    setStatus("loading");
-
-    api
-      .get<LogPage>(`/logs?${toSearch(query)}`)
-      .then((res) => {
-        if (!alive) return;
-
-        if (!res.ok) {
-          setStatus("error");
-          return;
-        }
-
-        setPage(res.data);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (alive) setStatus("error");
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [query]);
-
-  /**
-   * 지금 조건 그대로 CSV 를 내려받습니다.
-   *
-   * ★ 보고 있는 쪽이 아니라 **조건에 맞는 전체**를 받습니다.
-   *   50줄만 받으려고 내려받기를 누르지는 않습니다.
-   */
-  const download = useCallback(async (): Promise<string> => {
-    setDownloading(true);
-
-    try {
-      return await downloadFile(
-        `/logs/export?${toSearch(query)}`,
-        "너무 많아 최근 50,000건만 받았습니다. 기간을 좁혀 다시 받아 주세요.",
-      );
-    } finally {
-      setDownloading(false);
-    }
-  }, [query]);
-
-  // 조건이 바뀌면 첫 쪽부터 다시 봅니다.
-  const search = useCallback((next: Omit<LogQuery, "page" | "pageSize">) => {
-    setQuery((prev) => ({ ...prev, ...next, page: 1 }));
-  }, []);
-
-  const goToPage = useCallback((next: number) => {
-    setQuery((prev) => ({ ...prev, page: next }));
-  }, []);
-
-  const changePageSize = useCallback((next: number) => {
-    setQuery((prev) => ({ ...prev, pageSize: next, page: 1 }));
-  }, []);
-
-  const totalPages = Math.max(1, Math.ceil(page.totalCount / query.pageSize));
-
-  return {
-    rows: page.rows,
-    totalCount: page.totalCount,
-    page: query.page,
-    pageSize: query.pageSize,
-    totalPages,
-    status,
-    search,
-    goToPage,
-    changePageSize,
-    download,
-    downloading,
-  };
+  return useServerQuery<LogQuery, LogEntry>(
+    "/logs",
+    EMPTY_LOG_QUERY,
+    "너무 많아 최근 50,000건만 받았습니다. 기간을 좁혀 다시 받아 주세요.",
+  );
 }

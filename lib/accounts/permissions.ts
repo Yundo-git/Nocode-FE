@@ -9,22 +9,9 @@ import type { Account } from "@/lib/accounts/types";
 // 다만 화면에서 버튼을 숨기는 것은 편의일 뿐이고,
 // 실제 차단은 API 가 다시 판단해야 합니다.
 
-/**
- * 관제 자리인가.
- *
- * ★ 관제는 **보는 범위만** 넓습니다. 권한은 다른 파트와 똑같습니다.
- *   사법·등기·가족은 각자 자기 장비를 지키고, 관제는 그 전체를 지켜봅니다.
- *   그래서 대시보드·TV·로그조회·알림함에는 네 파트가 합쳐 나옵니다.
- *
- * ★ 관리는 자기 파트(관제)만 입니다.
- *   관제에도 자체 장비와 계정이 있고, 그건 관제 관리자가 다룹니다.
- *   남의 파트 장비를 대신 고치지는 않습니다.
- *
- * ※ 총괄(superadmin)은 어느 파트에 두든 전부 보고 전부 다룹니다.
- */
-export function isControlDesk(account: Account): boolean {
-  return account.divisionId === "control" && account.role !== "superadmin";
-}
+// ★ 관제도 권한은 다른 파트와 똑같습니다. 자기 파트만 관리합니다.
+//   관제가 다른 점은 **보는 범위**뿐이고, 그건 서버가 정합니다.
+//   (pingcheck-be 의 watchScope) 화면에서 가릴 것이 없습니다.
 
 // 서버를 등록·수정할 수 있는가. (자기 파트만)
 export function canManageServers(account: Account): boolean {

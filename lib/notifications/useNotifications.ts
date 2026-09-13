@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api/client";
-import { beep, unlockBeep } from "@/lib/notifications/beep";
+import { beep, canBeep, unlockBeep } from "@/lib/notifications/beep";
 import { nextPollDelay } from "@/lib/dashboard/pollCycle";
 
 // 사이드바 종에 뜨는 알림입니다.
@@ -64,8 +64,10 @@ export function useNotifications() {
   const [rows, setRows] = useState<readonly AlertRow[]>([]);
   const [muted, setMuted] = useState(false);
   const [seenId, setSeenId] = useState("");
+  // 브라우저가 소리를 열어 줬는지입니다. 아직이면 삑 소리가 조용히 묻힙니다.
+  const [soundReady, setSoundReady] = useState(false);
 
-  // 저장소는 화면이 뜬 뒤에 읽습니다. (NOTES.md 5-4)
+  // 저장소는 화면이 뜬 뒤에 읽습니다.
   useEffect(() => {
     setSeenId(readSeen());
   }, []);
@@ -73,7 +75,10 @@ export function useNotifications() {
   // 사람이 화면을 누를 때마다 소리를 낼 준비를 해 둡니다.
   // 장애가 난 다음에 준비하면 그 소리는 브라우저가 막습니다.
   useEffect(() => {
-    const handle = () => unlockBeep();
+    const handle = () => {
+      unlockBeep();
+      setSoundReady(canBeep());
+    };
 
     window.addEventListener("pointerdown", handle);
     window.addEventListener("keydown", handle);
@@ -175,5 +180,5 @@ export function useNotifications() {
 
   const unreadCount = rows.filter((row) => isNewerThan(row.occurredAt, seenId)).length;
 
-  return { rows, muted, unreadCount, markSeen, clear };
+  return { rows, muted, unreadCount, markSeen, clear, soundReady };
 }

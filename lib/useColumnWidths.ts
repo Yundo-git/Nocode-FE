@@ -9,7 +9,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // ★ 브라우저에 저장합니다.
 //   기기마다 화면 크기가 다르고, 화면이 그려지기 전에 적용돼야 해서
 //   서버에서 받아올 수 없습니다. 테마·대시보드 배치와 같은 이유입니다.
-//   (NOTES.md 6-2)
 
 /** 너무 좁히면 글자가 아예 안 보입니다. */
 const MIN_WIDTH = 60;
@@ -26,7 +25,7 @@ export function useColumnWidths(
   changed: boolean;
 } {
   // 서버에는 localStorage 가 없습니다. 항상 기본값으로 시작하고
-  // 화면이 붙은 뒤에 읽습니다. (NOTES.md 5-4)
+  // 화면이 붙은 뒤에 읽습니다.
   const [widths, setWidths] = useState<ColumnWidths>(defaults);
   const [changed, setChanged] = useState(false);
 

@@ -13,6 +13,16 @@ const apiOrigin = process.env.API_ORIGIN ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
+  // ── 도커 이미지에 넣을 꾸러미를 추려 냅니다 ──────────────────────────
+  //
+  // ★ 빌드하면 .next/standalone 안에 **실행에 필요한 것만** 모입니다.
+  //   node_modules 를 통째로 넣으면 이미지가 1GB 를 넘습니다.
+  //   인터넷 없는 내부망에는 이미지를 파일로 옮겨야 해서 크기가 곧 작업 시간입니다.
+  //
+  // ★ web/Dockerfile 이 이 폴더를 복사합니다. 이 줄을 지우면 빌드가 깨집니다.
+  //   (개발에는 아무 영향이 없습니다. next build 에서만 쓰입니다)
+  output: "standalone",
   // 개발·빌드 때 모듈을 찾는 기준입니다.
   turbopack: {
     root: projectRoot,

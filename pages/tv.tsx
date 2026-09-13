@@ -9,7 +9,7 @@ import { useDashboardSummary } from "@/lib/dashboard/useDashboardSummary";
 import { useTvServers } from "@/lib/dashboard/useTvServers";
 import { SUMMARY_REFRESH_MS, staleAfterMs } from "@/lib/dashboard/types";
 import { useSettings } from "@/lib/settings/useSettings";
-import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications/useNotifications";
 import { useNow } from "@/lib/useNow";
 import { formatAgo } from "@/lib/dashboard/duration";
 
@@ -23,7 +23,12 @@ import { formatAgo } from "@/lib/dashboard/duration";
 //   도넛은 "전체가 어떤가", 상자는 "어느 것이 문제인가" 입니다.
 export default function TvPage() {
   const router = useRouter();
-  const { account } = useAuth();
+
+  // ★ 벽 화면에서도 삑 소리가 나야 합니다.
+  //   알림은 사이드바에 붙어 있는데 TV모드에는 사이드바가 없습니다.
+  //   여기서 따로 불러 줘야 소리가 납니다. 정작 소리가 가장 필요한 곳입니다.
+  //   내 알림을 꺼 뒀는지(muted)도 이 훅이 알려 줍니다.
+  const { muted, soundReady } = useNotifications();
   const { summary, status } = useDashboardSummary();
   const { rows } = useTvServers();
   const { settings } = useSettings();
@@ -54,7 +59,8 @@ export default function TvPage() {
           lastCheckedAt={summary.lastCheckedAt}
           now={now}
           stale={stale}
-          muted={account?.notifyEnabled === false}
+          muted={muted}
+          soundReady={soundReady}
           pingIntervalMs={settings.pingIntervalSec * 1000}
         />
 
@@ -81,7 +87,7 @@ export default function TvPage() {
           {offline.length > 0 ? (
             <OutageAlert
               problems={offline}
-              muted={account?.notifyEnabled === false}
+              muted={muted}
               now={now}
             />
           ) : null}
@@ -110,6 +116,8 @@ type TvHeaderProps = {
   stale: boolean;
   /** 내 소리를 꺼 뒀는지입니다. 벽 화면에도 그 사실을 적어 둡니다. */
   muted: boolean;
+  /** 브라우저가 소리를 열어 줬는지입니다. 아직이면 안내가 필요합니다. */
+  soundReady: boolean;
   /** 박동 선이 차오르는 속도입니다. 서버가 알려 준 핑 주기입니다. */
   pingIntervalMs: number;
 };
@@ -121,6 +129,7 @@ function TvHeader({
   now,
   stale,
   muted,
+  soundReady,
   pingIntervalMs,
 }: TvHeaderProps) {
   const [fullscreen, setFullscreen] = useState(false);
@@ -196,6 +205,16 @@ function TvHeader({
         {muted ? (
           <span className="rounded-md bg-row-hover px-2 py-0.5 text-bt-text-m font-semibold text-secondary">
             알림 꺼짐
+          </span>
+        ) : !soundReady ? (
+          // ★ 브라우저는 사람이 한 번 누르기 전에는 소리를 막습니다.
+          //   벽에 띄워 두고 아무도 안 누르면 **장애가 나도 조용합니다.**
+          //   띄워 놓은 사람이 떠나기 전에 알아채야 합니다.
+          <span
+            className="rounded-md bg-pending-500/20 px-2 py-0.5 text-bt-text-m font-semibold text-pending-500"
+            title="브라우저가 소리를 막고 있습니다. 화면을 한 번 누르면 열립니다."
+          >
+            소리 잠김 · 화면을 한 번 눌러 주세요
           </span>
         ) : null}
       </div>
