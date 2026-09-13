@@ -36,7 +36,11 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
 
+  // "초기화" 를 누를 때마다 올립니다. 기간 칸을 새로 만들어 "전체" 로 되돌립니다.
+  const [resetKey, setResetKey] = useState(0);
+
   const handleReset = () => {
+    setResetKey((prev) => prev + 1);
     setDraft(EMPTY_DRAFT);
     onSearch(EMPTY_DRAFT);
   };
@@ -46,6 +50,7 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
       {/* 기간. 서버관리와 같은 칸을 씁니다.
           다만 여기는 시각까지 고릅니다 — 장애는 몇 시 몇 분인지가 중요합니다. */}
       <DateRangeField
+        key={resetKey}
         label="조회 기간"
         idPrefix="log"
         from={draft.from}

@@ -39,7 +39,11 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
 
+  // "초기화" 를 누를 때마다 올립니다. 기간 칸을 새로 만들어 "전체" 로 되돌립니다.
+  const [resetKey, setResetKey] = useState(0);
+
   const handleReset = () => {
+    setResetKey((prev) => prev + 1);
     setDraft(EMPTY_FILTERS);
     onSearch(EMPTY_FILTERS);
   };
@@ -48,6 +52,7 @@ export function ServerFilters({ onSearch }: ServerFiltersProps) {
     <FilterForm onSubmit={() => onSearch(draft)} onReset={handleReset}>
           {/* 등록일시. 로그조회와 같은 칸을 씁니다. */}
           <DateRangeField
+            key={resetKey}
             label="등록일시"
             idPrefix="server"
             from={draft.from}
