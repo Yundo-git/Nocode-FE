@@ -1,7 +1,3 @@
-// 지난 시간을 "23분째" 처럼 짧게 적습니다.
-//
-// 장애가 방금 난 것인지 몇 시간째인지에 따라 대응이 완전히 달라집니다.
-// 초 단위까지 보여 줄 필요는 없어서 단위 하나만 씁니다.
 export function formatElapsed(from: string, now: number): string {
   const start = new Date(from).getTime();
 
@@ -20,7 +16,6 @@ export function formatElapsed(from: string, now: number): string {
   return `${Math.floor(hours / 24)}일째`;
 }
 
-// 마지막 확인이 얼마나 지났는지입니다. "12초 전" 처럼 적습니다.
 export function formatAgo(from: string, now: number): string {
   const at = new Date(from).getTime();
 

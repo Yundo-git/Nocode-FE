@@ -8,9 +8,19 @@ RUN npm ci
 
 COPY . .
 
-# 빌드할 때 이미 굳는 값이 없도록 주의합니다.
-# API 주소는 서버에서 읽으므로(next.config.ts 의 rewrites) 여기서 넣지 않습니다.
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# ★ /api/* 를 어디로 넘길지는 **빌드할 때 굳습니다.**
+#   next.config.ts 의 rewrites() 는 next build 가 한 번 실행해서
+#   routes-manifest.json 에 적어 둡니다. 그 뒤로는 환경변수를 바꿔도
+#   읽지 않습니다. 실행할 때 넣으면 될 줄 알고 비워 뒀다가,
+#   컨테이너가 자기 자신(localhost:4000)을 찾아 로그인이 500 이 났습니다.
+#
+#   도커 망 안에서 API 는 언제나 http://api:4000 입니다. (docker-compose.yml)
+#   다른 이름을 쓰려면 --build-arg API_ORIGIN=... 로 넘기세요.
+ARG API_ORIGIN=http://api:4000
+ENV API_ORIGIN=$API_ORIGIN
+
 RUN npm run build
 
 # ── 2단계: 실행만 하는 이미지 ───────────────────────────────────────────

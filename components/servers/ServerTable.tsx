@@ -10,18 +10,13 @@ import {
   type ServerDisplayState,
 } from "@/lib/servers/types";
 
-// 상태 점 색입니다. 모두 테마에 따라 바뀌는 토큰만 씁니다.
 const DOT_COLOR: Record<ServerDisplayState, string> = {
   online: "bg-up-500",
   offline: "bg-down-500",
-  // 주황입니다. 아직 확정 못 한 상태라 빨강도 초록도 아닙니다.
   pending: "bg-pending-500",
   disabled: "bg-unknown-500",
 };
 
-// 상태를 색 점 하나로 보여 줍니다.
-// 색만으로는 못 알아보는 사람이 있으므로 이름을 함께 전달합니다.
-// (title 은 마우스를 올렸을 때, aria-label 은 읽기 도구용입니다.)
 function StatusDot({ state }: { state: ServerDisplayState }) {
   const label = DISPLAY_STATE_LABEL[state];
 
@@ -36,9 +31,7 @@ function StatusDot({ state }: { state: ServerDisplayState }) {
 }
 
 type ServerTableProps = {
-  /** 이번 쪽에 보여 줄 줄들입니다. */
   rows: readonly Server[];
-  /** 검색 결과 전체 건수입니다. (쪽 나누기 전) */
   totalCount: number;
   page: number;
   totalPages: number;
@@ -50,19 +43,11 @@ type ServerTableProps = {
   onToggleSelectAll: () => void;
   onClearSelection: () => void;
   onToggleEnabled: (id: string) => void;
-  /** 등록 버튼을 눌렀을 때. 창을 여는 일은 페이지가 맡습니다. */
   onRegisterClick: () => void;
-  /** 고른 장비를 지웁니다. 되묻는 창은 페이지가 띄웁니다. */
   onDeleteSelected: () => void;
-  /** 지금 조건 그대로 목록을 내려받습니다. */
   onDownload: () => void;
   downloading: boolean;
-  /** 일괄등록 창을 엽니다. */
   onImportClick: () => void;
-  /**
-   * 줄을 누르면 수정 창이 열립니다.
-   * 권한이 없으면 undefined 가 와서 눌리지 않습니다.
-   */
   onRowClick?: (server: Server) => void;
 };
 
@@ -88,8 +73,6 @@ export function ServerTable({
   onImportClick,
   onRowClick,
 }: ServerTableProps) {
-  // 방금 등록된 줄을 잠깐 표시해 줍니다.
-  // "내가 한 것이 반영됐다" 를 보여 주는 용도라, 처음 목록에는 쓰지 않습니다.
   const [freshIds, setFreshIds] = useState<ReadonlySet<string>>(new Set());
   const seenRef = useRef<Set<string> | null>(null);
 
@@ -109,18 +92,15 @@ export function ServerTable({
     for (const id of fresh) seen.add(id);
     setFreshIds(fresh);
 
-    // 잠깐 표시한 뒤 원래대로 둡니다.
     const timer = setTimeout(() => setFreshIds(new Set()), 1500);
     return () => clearTimeout(timer);
   }, [rows]);
 
-  // 이번 쪽이 전부 선택돼 있는지 봅니다. 빈 쪽은 선택된 것으로 치지 않습니다.
   const allOnPageSelected =
     rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
 
   return (
     <div className="panel flex min-h-[18rem] min-w-0 flex-1 flex-col">
-      {/* 표 위 줄: 왼쪽은 건수와 선택 관련, 오른쪽은 내려받기와 등록, 쪽 크기 */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-b2_body_m font-medium text-secondary">
@@ -184,7 +164,6 @@ export function ServerTable({
         </div>
       </div>
 
-      {/* 표. 좁은 화면에서는 가로로만 스크롤됩니다. */}
       <div className="min-h-0 min-w-0 flex-1 overflow-auto">
         <table className="data-table min-w-[980px]">
           <colgroup>
@@ -239,7 +218,6 @@ export function ServerTable({
                     onRowClick ? "cursor-pointer hover:bg-row-hover" : ""
                   }`}
                 >
-                  {/* 체크박스와 토글은 줄 클릭(수정 창)과 겹치지 않게 막습니다. */}
                   <td className="center" onClick={(event) => event.stopPropagation()}>
                     <input
                       type="checkbox"

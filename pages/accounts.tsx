@@ -16,7 +16,6 @@ import {
   type AdminAccountInput,
 } from "@/lib/accounts/types";
 
-// 주소를 직접 쳐서 들어오는 것도 막습니다. (사이드바에서 감추는 것만으로는 부족)
 export default function AccountsPageRoute() {
   return (
     <RequirePermission allow={canManageAccounts}>
@@ -26,7 +25,6 @@ export default function AccountsPageRoute() {
 }
 
 function AccountsPage() {
-  // 지금 보고 있는 사람은 백엔드가 세션을 보고 알려 줍니다.
   const { account: me } = useAuth();
   const {
     setEnabled,
@@ -36,11 +34,8 @@ function AccountsPage() {
     resetPassword,
   } = useAccountActions();
 
-  // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
-  // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireAccountManager)
   const canManage = me !== null && canManageAccounts(me);
 
-  // null 이면 새로 만드는 창, 값이 있으면 그 계정을 고치는 창입니다.
   const [editing, setEditing] = useState<Account | null>(null);
   const [formOpen, setFormOpen] = useState(false);
 
@@ -62,7 +57,6 @@ function AccountsPage() {
           : "계정을 찾을 수 없습니다.";
       }
 
-      // 쪽 나누기를 서버가 하므로 지금 쪽을 다시 받아야 합니다.
       if (editing === null) table.setPage(1);
       table.reload();
       return "";
@@ -100,10 +94,6 @@ function AccountsPage() {
         <title>계정관리 | PingCheck</title>
       </Head>
 
-      {/* ★ 화면 높이에 맞춰 채웁니다. 페이지 전체가 스크롤되지 않게 하려는 것입니다.
-          표가 길어졌을 때 페이지가 통째로 내려가면 검색 조건과 쪽 번호가
-          화면 밖으로 밀려나, 다음 쪽으로 가려고 매번 끝까지 내려야 합니다.
-          아래 표 안쪽만 스크롤됩니다. (머리글은 sticky 로 붙어 있습니다) */}
       <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "계정관리"]} title="계정관리" />
 
@@ -135,7 +125,6 @@ function AccountsPage() {
           />
         )}
 
-        {/* 관리자에게만 창을 띄웁니다. */}
         {canManage ? (
           <AccountFormModal
             open={formOpen}

@@ -9,26 +9,11 @@ import type { DashboardSummary } from "@/lib/dashboard/types";
 type ServerStatusPanelProps = {
   summary: DashboardSummary;
   loading: boolean;
-  /** 매초 바뀌는 지금 시각입니다. */
   now: number;
-  /**
-   * 마지막 확인이 이보다 오래되면 "감시 멈춤" 으로 봅니다.
-   * 서버가 알려 준 핑 주기로 계산한 값입니다. (lib/dashboard/types.ts)
-   */
   staleAfterMs: number;
-  /** 핑 주기(ms)입니다. 박동 선이 차오르는 속도에 씁니다. */
   pingIntervalMs: number;
 };
 
-// 대시보드의 서버 상태입니다.
-//
-// 전체 / 보안장비 / 서버 세 덩어리를 같은 크기로 나눠 가운데에 놓습니다.
-// 목록처럼 있다 없다 하는 것을 옆에 두면, 문제가 없는 날에는
-// 그 자리가 통째로 비어 허전해집니다. 늘 같은 모양이 유지되도록 도넛만 둡니다.
-//
-// 업무구분(사법·등기…)이 아니라 장비 종류로 나누는 이유:
-// 계정은 자기 파트의 장비만 봅니다. 업무구분으로 나누면 한 사람 화면에는
-// 한 칸만 차고 나머지는 늘 비어 있습니다. 종류는 어느 파트에나 섞여 있습니다.
 export function ServerStatusPanel({
   summary,
   loading,
@@ -36,13 +21,9 @@ export function ServerStatusPanel({
   staleAfterMs,
   pingIntervalMs,
 }: ServerStatusPanelProps) {
-  // 훅은 늘 같은 순서로 불려야 해서, 아래 early return 보다 위에 둡니다.
-  // 건수가 바뀐 순간에만 한 번 번쩍입니다.
   const todayFlash = useFlashOnChange(summary.todayDownCount);
 
   if (loading) {
-    // 글자만 띄우면 내용이 채워질 때 배치가 크게 튑니다.
-    // 실제와 비슷한 자리를 미리 잡아 둡니다.
     return (
       <div className="donut-grid h-full items-center gap-6">
         {[0, 1, 2].map((key) => (
@@ -63,18 +44,12 @@ export function ServerStatusPanel({
 
   const { counts, byType, lastCheckedAt, todayDownCount } = summary;
 
-  // 마지막 확인이 너무 오래됐으면 핑을 쏘는 쪽이 멈춘 것입니다.
-  // 그때 화면은 마지막 상태를 그대로 보여 주기 때문에 전부 "정상" 으로 보입니다.
   const stale =
     lastCheckedAt !== null &&
     now - new Date(lastCheckedAt).getTime() > staleAfterMs;
 
   return (
     <div className="flex h-full min-w-0 flex-col justify-center gap-4">
-      {/* 세 칸을 같은 폭으로 나눠 도넛을 고르게 벌립니다.
-          ★ 화면 폭이 아니라 **이 상자의 폭**에 맞춰 칸 수가 줄어듭니다.
-            대시보드는 사람이 상자 크기를 바꿀 수 있어서,
-            화면 폭(lg:) 기준으로 세 칸을 고집하면 좁힌 상자에서 깨집니다. */}
       <div className="donut-grid items-center gap-6">
         <HealthDonut label="전체" counts={counts} stale={stale} />
         {byType.map((item) => (
@@ -87,7 +62,6 @@ export function ServerStatusPanel({
         ))}
       </div>
 
-      {/* 감시가 돌고 있는지와, 지금 순간만으로는 안 보이는 값입니다. */}
       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 border-t border-line pt-3 text-bt-text-m">
         <span className="flex flex-col items-center">
           <span
@@ -99,20 +73,16 @@ export function ServerStatusPanel({
               : `마지막 점검 ${formatAgo(lastCheckedAt, now)}${stale ? " ⚠" : ""}`}
           </span>
 
-          {/* 핑이 도는 박자입니다. 멈추면 선이 가득 찬 채 서 있습니다. */}
           <PingPulse
             pingIntervalMs={pingIntervalMs} lastCheckedAt={lastCheckedAt} now={now} stale={stale} />
         </span>
 
         <span className="text-line-strong">·</span>
 
-        {/* 하루에 여러 번 끊겼다 붙는 장비는 지금 순간엔 정상이라
-            위 도넛에 잡히지 않습니다. 그것을 드러내는 숫자입니다. */}
         <span
           className={`px-1 ${todayFlash ? "animate-flash" : ""} ${
             todayDownCount > 0 ? "font-semibold text-down-500" : "text-muted"
           }`}
-          // 기본 강조색 대신 눈에 띄는 색으로 한 번 번쩍입니다.
           style={{ "--flash-color": "var(--row-hover)" } as CSSProperties}
         >
           오늘 장애 {todayDownCount}건

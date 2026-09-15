@@ -1,15 +1,11 @@
 type PaginationProps = {
-  /** 1부터 시작합니다. */
   page: number;
   totalPages: number;
   onChange: (next: number) => void;
 };
 
-// 현재 쪽 주변으로 보여 줄 쪽 번호를 고릅니다.
-// 쪽이 많아도 번호가 끝없이 늘어나지 않게 최대 5개만 냅니다.
 function pageWindow(page: number, totalPages: number): number[] {
   const size = Math.min(5, totalPages);
-  // 현재 쪽이 가운데 오도록 시작점을 잡고, 양 끝에서는 범위 안으로 당깁니다.
   const start = Math.min(
     Math.max(1, page - Math.floor(size / 2)),
     Math.max(1, totalPages - size + 1),

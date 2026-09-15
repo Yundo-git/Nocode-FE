@@ -2,12 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 색상 값입니다.
-   기본값은 밝은 퍼플-화이트 테마이고, [data-theme="dark"] 에서 어두운 테마로 바뀝니다. */
 :root {
   color-scheme: light;
 
-  /* 보라색 계열 강조색입니다. */
   --primary-900: #2e1258;
   --primary-800: #421a7a;
   --primary-700: #56209f;
@@ -25,7 +22,6 @@
   --text-white: #ffffff;
   --text-base: #1d1533;
 
-  /* 화면 바탕과 패널 */
   --bg: #f8f6fc;
   --panel: #ffffff;
   --panel-2: #f3eefb;
@@ -33,15 +29,11 @@
   --line: #e6dff2;
   --line-strong: #d2c6e6;
 
-  /* 상태 점 색상입니다. (정상 / 비정상 / 확인 중 / 미연결) */
   --up-500: #0b6b36;
   --down-500: #b02020;
-  /* 확인 중입니다. 빨강과 헷갈리지 않게 노랑 쪽으로 충분히 치우친 주황을 씁니다.
-     화이트 모드는 흰 바탕에서도 읽히도록 어둡게 잡았습니다. */
   --pending-500: #b26a00;
   --unknown-500: #5b5273;
 
-  /* 버튼과 입력칸이 같은 줄에서 높이가 맞도록 한 곳에서 정합니다. */
   --control-h-sm: 28px;
   --control-h-md: 34px;
 
@@ -114,7 +106,6 @@
 }
 
 @layer components {
-  /* 버튼 */
   .btn {
     @apply inline-flex items-center justify-center gap-1.5 font-semibold transition duration-150 ease-out;
     border-radius: var(--radius-md);
@@ -133,10 +124,6 @@
     background-color: var(--primary-700);
   }
 
-  /* 되돌릴 수 없는 일(삭제)에 씁니다.
-     빨강을 쓰는 것은 눈에 띄라고가 아니라, 다른 버튼과 **손이 기억하는 위치가
-     같아도** 색으로 한 번 더 멈추게 하려는 것입니다.
-     --down-500 은 블랙 모드에서도 다시 정의돼 있어 그대로 씁니다. */
   .btn-danger {
     background-color: var(--down-500);
     color: #ffffff;
@@ -157,8 +144,6 @@
     color: var(--text-primary);
   }
 
-  /* 크기는 아래 "공통 높이" 를 씁니다.
-     위아래 여백으로 맞추면 테두리가 있는 버튼(btn-ghost)만 2px 더 커집니다. */
   .btn-sm {
     @apply px-2.5 text-bt-text-m;
     height: var(--control-h-sm);
@@ -169,7 +154,6 @@
     height: var(--control-h-md);
   }
 
-  /* 입력과 선택 상자. 같은 줄에 놓이는 버튼과 높이가 같아야 합니다. */
   .input,
   .select {
     @apply px-2.5 text-b2_body_r outline-none transition duration-150;
@@ -180,16 +164,11 @@
     background-color: var(--panel);
   }
 
-  /* 도넛을 늘어놓는 격자입니다.
-     auto-fit + minmax 라 **담긴 상자의 폭**에 맞춰 칸 수가 알아서 줄어듭니다.
-     (lg: 같은 화면 폭 기준은 상자를 좁혀도 칸 수가 그대로라 깨집니다)
-       넓으면 3칸 -> 좁으면 2칸 -> 더 좁으면 1칸 */
   .donut-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   }
 
-  /* 표 위 줄처럼 촘촘한 곳에서 btn-sm 과 짝을 이루는 크기입니다. */
   .input-sm,
   .select-sm {
     @apply px-2 text-bt-text-m;
@@ -202,9 +181,6 @@
     box-shadow: 0 0 0 3px var(--primary-100);
   }
 
-  /* 정보 밀도를 높인 표
-     - table-layout: fixed      : 쪽을 넘겨도 칸 너비가 흔들리지 않습니다.
-     - border-collapse: separate: 머리글을 고정해도 아래 구분선이 남습니다. */
   .data-table {
     @apply w-full text-left;
     table-layout: fixed;
@@ -241,21 +217,18 @@
     background-color: var(--row-hover);
   }
 
-  /* 숫자 칸은 오른쪽 정렬 + 자릿수 고정 */
   .data-table .num,
   .data-table th.num {
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
 
-  /* 가운데 정렬 칸 (체크박스, 토글 등) */
   .data-table .center,
   .data-table th.center {
     text-align: center;
     overflow: visible;
   }
 
-  /* 기본 면 */
   .panel {
     border-radius: var(--radius-lg);
     border: 1px solid var(--line);
@@ -269,30 +242,21 @@
   }
 }
 
-/* react-grid-layout 의 크기 조절 손잡이입니다.
-   원본 CSS 에 색이 #0006(검정)으로 박혀 있어 블랙 모드에서 보이지 않습니다.
-   _app.tsx 에서 그리드 CSS 를 먼저, 이 파일을 나중에 불러오므로 여기 규칙이 이깁니다. */
 .react-resizable-handle::after {
   border-right-color: var(--text-muted);
   border-bottom-color: var(--text-muted);
 }
 
-/* 끌고 있는 상자를 다른 상자 위로 띄웁니다. */
 .react-grid-item.react-draggable-dragging {
   z-index: 3;
 }
 
-/* 놓일 자리를 미리 보여 주는 회색 칸입니다. 강조색으로 바꿉니다. */
 .react-grid-item.react-grid-placeholder {
   background: var(--primary-400);
   opacity: 0.25;
   border-radius: var(--radius-lg);
 }
 
-/* 장애 알림의 느린 깜빡임입니다.
-   Tailwind 기본 animate-pulse 는 주기가 2초지만 투명도가 옅게만 변해
-   멀리서 잘 안 보입니다. 1.5초 주기로 더 또렷하게 바꿉니다.
-   초당 3회 이상 깜빡이면 광과민성 발작 위험이 있어 느리게 둡니다. */
 @keyframes pulse-slow {
   0%,
   100% {
@@ -307,8 +271,6 @@
   animation: pulse-slow 1.5s ease-in-out infinite;
 }
 
-/* 새 로그 줄이 위에서 미끄러져 들어옵니다.
-   목록이 조용히 바뀌면 새 것이 생겼는지 알 수 없습니다. */
 @keyframes slide-in-top {
   from {
     opacity: 0;
@@ -324,9 +286,6 @@
   animation: slide-in-top 0.22s ease-out;
 }
 
-/* 값이 바뀐 순간에만 한 번 번쩍입니다.
-   계속 깜빡이는 것과 정반대입니다. 잠깐 딴 데 보다 돌아왔을 때
-   "무엇이 바뀌었는지" 를 알려 주는 용도입니다. */
 @keyframes flash-mark {
   0% {
     background-color: var(--flash-color, var(--row-hover));
@@ -341,7 +300,6 @@
   border-radius: var(--radius-sm);
 }
 
-/* 창이 뜰 때만 씁니다. 닫을 때는 기다리게 하지 않습니다. */
 @keyframes fade-scale-in {
   from {
     opacity: 0;
@@ -357,7 +315,6 @@
   animation: fade-scale-in 0.15s ease-out;
 }
 
-/* 알림 쪽지가 오른쪽에서 들어옵니다. */
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -373,8 +330,6 @@
   animation: toast-in 0.2s ease-out;
 }
 
-/* 로딩 중 자리를 잡아 두는 회색 뼈대입니다.
-   글자로 "불러오는 중" 을 띄우면 내용이 채워질 때 배치가 튑니다. */
 @keyframes skeleton-breathe {
   0%,
   100% {
@@ -389,10 +344,6 @@
   animation: skeleton-breathe 1.4s ease-in-out infinite;
 }
 
-/* 화면 움직임을 줄이도록 설정한 사람에게는 모든 움직임을 끕니다.
-   어지럼증을 느끼는 분들에게는 애니메이션이 실제로 문제가 됩니다.
-   지우지 않고 아주 짧게 만드는 이유는, 끝났을 때 실행되는 코드가
-   그대로 동작하도록 두기 위해서입니다. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -15,19 +15,11 @@ import { useAuth } from "@/lib/auth";
 
 type ServerRegisterModalProps = {
   open: boolean;
-  /**
-   * 고칠 장비입니다. null 이면 새로 등록하는 창입니다.
-   *
-   * ★ 수정 기능이 없으면 오타 하나를 고치려고 지웠다 다시 넣어야 하고,
-   *   그러면 그 장비의 이력(로그)이 끊깁니다.
-   */
   editing: Server | null;
   onClose: () => void;
   onSubmit: (input: NewServerInput) => void;
 };
 
-// 폼이 채워지는 중에는 아직 값이 비어 있을 수 있어
-// NewServerInput 과 달리 선택 항목을 빈 문자열까지 허용합니다.
 type DraftValues = {
   ip: string;
   type: ServerType | "";
@@ -43,11 +35,9 @@ const EMPTY_DRAFT: DraftValues = {
   divisionId: "",
   nameEn: "",
   nameKo: "",
-  // 등록하면 바로 감시를 시작하는 쪽이 흔하므로 켜 둔 상태로 시작합니다.
   enabled: true,
 };
 
-// 폼 검사입니다. 규칙은 API 와 공유합니다. (lib/servers/validation.ts)
 function validate(draft: DraftValues): string {
   return validateNewServerInput({
     ip: draft.ip,
@@ -58,9 +48,6 @@ function validate(draft: DraftValues): string {
   });
 }
 
-// 서버를 한 대 등록하는 창입니다.
-// 표의 컬럼 중 사람이 정하는 값만 받고, 상태·응답·마지막 확인은
-// 등록 후 핑 결과로 채워집니다.
 export function ServerRegisterModal({
   open,
   editing,
@@ -70,21 +57,12 @@ export function ServerRegisterModal({
   const [draft, setDraft] = useState<DraftValues>(EMPTY_DRAFT);
   const [error, setError] = useState("");
   const { account } = useAuth();
-  // 총괄만 파트를 고릅니다. 나머지는 자기 파트로 고정입니다.
   const myDivision =
     account !== null && account.role !== "superadmin" ? account.divisionId : undefined;
 
-  // 창을 열 때 값을 채웁니다.
-  // 고치는 창이면 지금 값으로, 새로 등록하는 창이면 비운 채로 시작합니다.
-  //
-  // 닫을 때가 아니라 **열 때** 채우는 이유: 닫는 순간에 비우면
-  // 창이 사라지는 동안 빈 칸이 잠깐 보입니다.
   useEffect(() => {
     if (!open) return;
 
-  // ★ 총괄이 아니면 업무구분을 고를 수 없습니다. 내 파트로 채워 둡니다.
-  //   화면에는 읽기 전용으로 보이므로(DivisionField), 여기서 안 채우면
-  //   값이 빈 채로 남아 "업무구분을 선택해주세요" 에 걸려 등록이 안 됩니다.
     setError("");
     setDraft(
       editing === null
@@ -114,7 +92,6 @@ export function ServerRegisterModal({
       return;
     }
 
-    // validate 를 통과했으므로 선택 항목이 비어 있지 않습니다.
     onSubmit({
       ip: draft.ip.trim(),
       type: draft.type as ServerType,
@@ -126,8 +103,6 @@ export function ServerRegisterModal({
     onClose();
   };
 
-  // closeOnBackdrop={false}: 입력하던 내용이 실수로 날아가지 않도록
-  // 바깥(어두운 면)을 눌러도 닫히지 않게 합니다.
   return (
     <Modal
       open={open}
@@ -196,9 +171,6 @@ export function ServerRegisterModal({
             />
           </FormRow>
 
-          {/* ★ 수정할 때는 사용여부를 여기서 바꾸지 않습니다.
-              목록의 토글이 담당하고, 그쪽은 감시 시작·중지 로그를 남깁니다.
-              두 길에서 같은 값을 바꾸면 이력이 어긋납니다. */}
           {editing === null ? (
             <FormRow required label="사용여부">
               <div className="flex items-center gap-2">
@@ -234,4 +206,3 @@ export function ServerRegisterModal({
   );
 }
 
-// 라벨과 입력칸을 한 줄로 묶습니다. 모두 필수라 라벨 옆에 * 를 답니다.

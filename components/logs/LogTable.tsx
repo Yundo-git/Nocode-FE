@@ -3,14 +3,12 @@ import { formatDateTime } from "@/lib/datetime";
 import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
 import { LOG_TYPE_LABEL, type LogEntry, type LogType } from "@/lib/logs/types";
 
-// 로그 종류별 색입니다. 모두 테마에 따라 바뀌는 토큰만 씁니다.
 const TYPE_CLASS: Record<LogType, string> = {
   down: "text-down-500 font-bold",
   up: "text-up-500 font-bold",
   registered: "text-secondary",
 };
 
-// 열 정의입니다. 마지막 "내용" 은 남는 자리를 다 씁니다.
 const COLUMNS: readonly Column[] = [
   { key: "occurredAt", label: "발생 시각", width: 168 },
   { key: "type", label: "종류", width: 104 },
@@ -29,7 +27,6 @@ type LogTableProps = {
   totalPages: number;
   pageSize: number;
   loading: boolean;
-  /** 지금 조건 그대로 CSV 를 내려받습니다. */
   onDownload: () => void;
   downloading: boolean;
   onPageChange: (next: number) => void;

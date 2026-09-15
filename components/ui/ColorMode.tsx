@@ -1,7 +1,5 @@
 import { useTheme, type Theme } from "@/lib/theme";
 
-// 화이트 / 블랙 모드를 고르는 선택 상자입니다.
-// 고른 값은 브라우저에 저장돼서 새로고침해도 유지됩니다.
 export function ColorMode() {
   const { theme, setTheme } = useTheme();
 

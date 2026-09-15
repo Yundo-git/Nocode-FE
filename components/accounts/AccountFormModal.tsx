@@ -15,21 +15,13 @@ import { useAuth } from "@/lib/auth";
 
 type AccountFormModalProps = {
   open: boolean;
-  /** 고칠 계정입니다. null 이면 새로 만드는 창이 됩니다. */
   account: Account | null;
   onClose: () => void;
   onSubmit: (input: AdminAccountInput) => Promise<string>;
-  /**
-   * 비밀번호를 초기화합니다. (지웁니다)
-   *
-   * 새로 정해 주는 것이 아닙니다. 그 사람이 다음 로그인 때 직접 정합니다.
-   */
   onResetPassword: (id: string) => Promise<string>;
-  /** 삭제를 누르면 부릅니다. 새로 만드는 중에는 버튼이 나오지 않습니다. */
   onDelete: (id: string) => Promise<string>;
 };
 
-// 채워지는 중에는 선택 항목이 비어 있을 수 있습니다.
 type DraftValues = {
   loginId: string;
   name: string;
@@ -48,7 +40,6 @@ const EMPTY_DRAFT: DraftValues = {
   role: "viewer",
 };
 
-// 관리자가 계정을 만들거나 고치는 창입니다.
 export function AccountFormModal({
   open,
   account,
@@ -60,17 +51,12 @@ export function AccountFormModal({
   const [draft, setDraft] = useState<DraftValues>(EMPTY_DRAFT);
   const [error, setError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  // 초기화 결과 안내입니다. 수정 창에서만 씁니다.
   const [resetMessage, setResetMessage] = useState("");
   const isEdit = account !== null;
 
-  // ★ 이 창의 account 는 **고칠 계정**입니다. 지금 로그인한 사람이 아닙니다.
-  //   이름이 겹치니 헷갈리지 않게 me 로 받습니다.
   const { account: me } = useAuth();
-  // 총괄만 파트를 고릅니다. 나머지는 자기 파트로 고정입니다.
   const myDivision = me !== null && me.role !== "superadmin" ? me.divisionId : undefined;
 
-  // 창이 열릴 때 값을 채우고, 닫히면 비웁니다.
   useEffect(() => {
     setError("");
     setConfirmingDelete(false);
@@ -80,9 +66,6 @@ export function AccountFormModal({
       return;
     }
 
-  // ★ 총괄이 아니면 업무구분을 고를 수 없습니다. 내 파트로 채워 둡니다.
-  //   화면에는 읽기 전용으로 보이므로(DivisionField), 여기서 안 채우면
-  //   값이 빈 채로 남아 "업무구분을 선택해주세요" 에 걸려 등록이 안 됩니다.
     setDraft(
       account === null
         ? { ...EMPTY_DRAFT, divisionId: myDivision ?? "" }
@@ -112,8 +95,6 @@ export function AccountFormModal({
       return;
     }
 
-
-    // 검사를 통과했으므로 선택 항목이 비어 있지 않습니다.
     const failure = await onSubmit({
       loginId: draft.loginId.trim(),
       name: draft.name.trim(),
@@ -232,11 +213,6 @@ export function AccountFormModal({
           </FormRow>
         </div>
 
-        {/* ── 비밀번호 ────────────────────────────────────────────────
-            ★ 만들 때 비밀번호를 넣지 않습니다.
-              관리자가 정해서 알려 주면 관리자가 남의 비밀번호를 알게 되고,
-              전달하는 동안(메신저·쪽지·구두) 새어 나갑니다.
-              본인이 첫 로그인 때 직접 정합니다. */}
         {isEdit ? (
           <div className="mt-4 border-t border-line pt-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -269,7 +245,6 @@ export function AccountFormModal({
         ) : null}
 
         <div className="mt-5 flex items-center justify-between gap-2 border-t border-line pt-4">
-          {/* 삭제는 되돌릴 수 없어 한 번 더 묻습니다. */}
           <div>
             {isEdit ? (
               confirmingDelete ? (
@@ -316,4 +291,3 @@ export function AccountFormModal({
   );
 }
 
-// 라벨과 입력칸을 한 줄로 묶습니다. 모두 필수라 * 를 답니다.

@@ -5,19 +5,11 @@ import { validateNewPassword } from "@/lib/accounts/validation";
 
 type PasswordSetupModalProps = {
   open: boolean;
-  /** 비밀번호를 정할 계정의 아이디입니다. 확인용으로 보여 줍니다. */
   loginId: string;
-  /** 성공하면 빈 문자열, 실패하면 이유를 돌려줍니다. */
   onSubmit: (newPassword: string) => Promise<string>;
   onClose: () => void;
 };
 
-// 첫 로그인에서 비밀번호를 정하는 창입니다.
-//
-// ★ 계정을 만들 때는 비밀번호를 넣지 않습니다.
-//   관리자가 정해서 알려 주면 관리자가 남의 비밀번호를 알게 되고,
-//   전달하는 동안(메신저·쪽지·구두) 새어 나갑니다.
-//   본인만 아는 값이 되도록 여기서 직접 정하게 합니다.
 export function PasswordSetupModal({
   open,
   loginId,
@@ -32,7 +24,6 @@ export function PasswordSetupModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // 화면에서 먼저 거릅니다. 백엔드도 같은 규칙으로 다시 봅니다.
     const message = validateNewPassword(password);
 
     if (message) {
@@ -55,7 +46,6 @@ export function PasswordSetupModal({
         return;
       }
 
-      // 성공하면 바로 로그인됩니다. 창은 부르는 쪽이 닫습니다.
       setPassword("");
       setConfirm("");
     } finally {
@@ -64,7 +54,6 @@ export function PasswordSetupModal({
   };
 
   return (
-    // closeOnBackdrop={false}: 실수로 닫히면 처음부터 다시 해야 합니다.
     <Modal
       open={open}
       title="비밀번호 설정"
@@ -105,8 +94,6 @@ export function PasswordSetupModal({
           </FormRow>
         </div>
 
-        {/* 규칙을 미리 보여 줍니다.
-            틀린 뒤에 알려 주면 몇 번이고 다시 치게 됩니다. */}
         <ul className="mt-3 space-y-0.5 rounded-[var(--radius-md)] border border-line bg-panel-2 px-3 py-2 text-bt-text-s text-muted">
           <li>· 6자 이상</li>
           <li>· 숫자 1자 이상 (0~9)</li>

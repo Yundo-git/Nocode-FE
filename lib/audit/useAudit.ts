@@ -1,7 +1,6 @@
 import { useServerQuery } from "@/lib/useServerQuery";
 import { EMPTY_AUDIT_QUERY, type AuditEntry, type AuditQuery } from "@/lib/audit/types";
 
-// 작업이력 상태입니다. 로그조회와 같은 공용 훅을 씁니다.
 export function useAudit() {
   return useServerQuery<AuditQuery, AuditEntry>(
     "/audit",

@@ -1,16 +1,7 @@
 import type { BusinessDivisionId } from "@/lib/businessDivisions";
 
-// 계정 권한입니다.
-//
-// superadmin : 개발·운영 총괄. **모든 파트**를 다룹니다.
-// admin      : 파트 관리자. 소속 파트의 서버 등록과 계정 관리를 할 수 있습니다.
-//              다른 파트는 건드릴 수 없습니다.
-// viewer     : 일반 모니터링 계정. 보기만 합니다.
 export type AccountRole = "superadmin" | "admin" | "viewer";
 
-// ★ 등록 화면의 선택지입니다. superadmin 을 일부러 뺐습니다.
-//   총괄 권한은 화면에서 주지 않습니다.
-//   (백엔드도 superadmin 만 superadmin 을 부여할 수 있게 막고 있습니다)
 export const ACCOUNT_ROLES: readonly AccountRole[] = ["admin", "viewer"];
 
 export const ROLE_LABEL: Record<AccountRole, string> = {
@@ -21,46 +12,24 @@ export const ROLE_LABEL: Record<AccountRole, string> = {
 
 export type Account = {
   readonly id: string;
-  /** 로그인에 쓰는 아이디입니다. 만든 뒤에는 바꿀 수 없습니다. */
   readonly loginId: string;
   readonly name: string;
-  /** 아이디와 다릅니다. 알림을 받는 주소입니다. */
   readonly email: string;
   readonly phone: string;
-  /** 소속 파트입니다. 권한이 미치는 범위가 됩니다. */
   readonly divisionId: BusinessDivisionId;
   readonly role: AccountRole;
-  /** 꺼 두면 로그인할 수 없습니다. */
   readonly enabled: boolean;
-  /**
-   * 핑이 끊겼을 때 알림(소리 포함)을 받을지 여부입니다.
-   *
-   * 브라우저가 아니라 계정에 둡니다.
-   * 사람 단위 설정이라 다른 PC 로 로그인해도 따라와야 하고,
-   * 나중에 메일·문자 같은 다른 통로가 생겨도 같은 값을 씁니다.
-   */
   readonly notifyEnabled: boolean;
-  /**
-   * 로그인을 유지할 시간(분)입니다. null 이면 영구입니다.
-   *
-   * 사람마다 자리가 달라 계정에 둡니다. 다른 PC 로 로그인해도 따라옵니다.
-   */
   readonly sessionTtlMinutes: number | null;
   readonly createdAt: string;
 };
 
-// 본인이 고칠 수 있는 값입니다.
-// 아이디 / 소속 파트 / 권한은 여기 없습니다. 관리자만 바꿀 수 있어야 합니다.
 export type MyProfileInput = {
   readonly name: string;
   readonly email: string;
   readonly phone: string;
 };
 
-// 관리자가 계정을 만들거나 고칠 때 넣는 값입니다.
-//
-// 본인이 고치는 MyProfileInput 과 달리 아이디·소속 파트·권한까지 들어 있습니다.
-// 비밀번호는 없습니다. 아직 저장할 곳이 없습니다.
 export type AdminAccountInput = {
   readonly loginId: string;
   readonly name: string;
@@ -70,12 +39,10 @@ export type AdminAccountInput = {
   readonly role: AccountRole;
 };
 
-// 계정을 만들거나 고친 결과입니다.
 export type AccountWriteResult =
   | { readonly ok: true; readonly account: Account }
   | { readonly ok: false; readonly reason: "duplicate-login-id" | "not-found" };
 
-// 검색 조건입니다. 빈 문자열은 "조건 없음"으로 봅니다.
 export type AccountFilterValues = {
   readonly keyword: string;
   readonly divisionId: BusinessDivisionId | "";

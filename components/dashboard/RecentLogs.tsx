@@ -15,9 +15,7 @@ type RecentCheck = {
   readonly divisionId: BusinessDivisionId;
   readonly state: ServerDisplayState;
   readonly responseMs: number | null;
-  /** 한 번도 확인한 적 없으면 null 입니다. */
   readonly checkedAt: string | null;
-  /** 이번 확인에서 상태가 바뀌었으면 그 종류. 다음 갱신에는 null 이 됩니다. */
   readonly changed: "up" | "down" | null;
 };
 
@@ -31,33 +29,15 @@ const STATE_CLASS: Record<ServerDisplayState, string> = {
   disabled: "text-muted",
 };
 
-/** 상태가 막 바뀐 줄에 붙는 이름표입니다. */
 const CHANGED_LABEL = { up: "정상 전환", down: "장애 발생" } as const;
 const CHANGED_CLASS = {
   up: "text-up-500 font-bold",
   down: "text-down-500 font-bold",
 } as const;
 
-// 대시보드의 실시간 확인 결과입니다.
-//
-// ★ logs 표가 아니라 **장비의 마지막 확인 결과**를 보여 줍니다.
-//   정상으로 다녀온 핑까지 나와야 "감시가 돌고 있다" 가 눈에 보입니다.
-//   정상 핑을 logs 에 남기면 1,000대 기준 하루 576만 건이 되어
-//   로그조회가 "응답 정상" 으로 뒤덮입니다.
-//
-// ★ 차례는 비정상 → 정상 → 미연결 입니다.
-//   흐르는 목록이라 급한 것이 밀려나면 안 됩니다.
-//   꺼 둔 장비도 맨 아래에 둡니다. 빼 버리면 파트 장비를 전부 꺼 둔 사람에게
-//   빈 화면만 남아, 감시가 죽은 것과 구분이 안 됩니다.
-//
-// ★ 상태가 막 바뀐 줄은 "정상 전환" / "장애 발생" 으로 한 번 보여 주고,
-//   다음 갱신에는 평범한 확인 결과로 돌아갑니다.
-//   바뀌는 순간을 놓치지 않으면서도, 계속 강조되어 눈에 익어 버리지 않게 합니다.
 export function RecentLogs() {
   const [rows, setRows] = useState<readonly RecentCheck[]>([]);
-  // 이번에 값이 바뀐 줄만 기억합니다. 전부 움직이면 어지럽습니다.
   const [freshIds, setFreshIds] = useState<ReadonlySet<string>>(new Set());
-  // 값은 마지막 확인 시각입니다. 한 번도 확인 안 한 장비는 null 입니다.
   const seenRef = useRef<Map<string, string | null> | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
@@ -65,7 +45,6 @@ export function RecentLogs() {
     let alive = true;
 
     const load = async () => {
-      // 화면이 스스로 보내는 주기 요청입니다. 로그인 기한을 밀지 않습니다.
       const res = await api.get<RecentCheck[]>("/dashboard/recent", {
         background: true,
       });
@@ -80,7 +59,6 @@ export function RecentLogs() {
       const incoming = res.data;
 
       if (seenRef.current === null) {
-        // 첫 응답은 전부 "이미 있던 것" 으로 칩니다.
         seenRef.current = new Map(incoming.map((row) => [row.id, row.checkedAt]));
       } else {
         const seen = seenRef.current;
@@ -132,7 +110,6 @@ export function RecentLogs() {
 
   return (
     <div className="flex h-full min-w-0 flex-col">
-      {/* 열이 많아 좁은 화면에서는 가로로 스크롤됩니다. 눌려서 잘리는 것보다 낫습니다. */}
       <ul className="min-h-0 flex-1 divide-y divide-line overflow-auto">
         {rows.map((row) => (
           <li
@@ -160,7 +137,6 @@ export function RecentLogs() {
               {row.nameEn}
             </span>
             <span className="min-w-0 flex-1 truncate text-secondary">{row.nameKo}</span>
-            {/* 응답시간은 자릿수를 맞춰 세로로 읽히게 맨 오른쪽에 둡니다. */}
             <span className="w-16 shrink-0 text-right font-mono tabular-nums text-muted">
               {row.responseMs === null ? "-" : `${row.responseMs}ms`}
             </span>
@@ -169,8 +145,6 @@ export function RecentLogs() {
       </ul>
 
       <div className="shrink-0 border-t border-line pt-2 text-right">
-        {/* 로그조회에는 등록·감시시작·감시중지까지 **모든 이력**이 있습니다.
-            여기는 지금 상태만 보여 주는 자리입니다. */}
         <Link href="/logs" className="text-bt-text-m font-semibold text-primary-500">
           전체 로그 보기 →
         </Link>

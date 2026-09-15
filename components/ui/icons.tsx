@@ -1,11 +1,5 @@
 import type { ReactNode, SVGProps } from "react";
 
-// public/icon/*.svg 를 그대로 옮긴 아이콘들입니다.
-//
-// <img> 로 불러오면 SVG 안에 박힌 색(#131927)을 CSS 로 바꿀 수 없어서
-// 컴포넌트로 넣고 선 색을 currentColor 로 두었습니다.
-// 이렇게 하면 감싸는 요소의 글자 색(text-muted 등)을 그대로 따라갑니다.
-// 파일을 따로 받아오지 않으니 요청 수도 줄어듭니다.
 function IconBase({
   children,
   ...props
@@ -25,7 +19,6 @@ function IconBase({
   );
 }
 
-// 아이콘들이 모두 같은 선 모양을 씁니다.
 const stroke = {
   stroke: "currentColor",
   strokeWidth: 1.5,
@@ -33,7 +26,6 @@ const stroke = {
   strokeLinejoin: "round",
 } as const;
 
-// 끝 모양 지정이 없는 선입니다. (원본 svg 를 그대로 따랐습니다)
 const plainStroke = {
   stroke: "currentColor",
   strokeWidth: 1.5,
@@ -51,7 +43,6 @@ export function LogoutIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 사이드바를 여는 아이콘입니다. (화살표가 오른쪽 = 펼치기)
 export function TabOpenIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -68,7 +59,6 @@ export function TabOpenIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 사이드바를 닫는 아이콘입니다. (화살표가 왼쪽 = 접기)
 export function TabCloseIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -85,7 +75,6 @@ export function TabCloseIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 사이드바 메뉴 아이콘들입니다.
 export function DashboardIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -127,7 +116,6 @@ export function UserIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 알림(종) 아이콘입니다.
 export function BellIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -143,7 +131,6 @@ export function BellIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// TV(관제실 화면) 아이콘입니다.
 export function TvIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -157,8 +144,6 @@ export function TvIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 로그조회 아이콘입니다.
-// public/icon 에 원본이 없어 여기서 직접 그렸습니다. (원본을 주시면 교체하면 됩니다)
 export function LogIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -172,41 +157,27 @@ export function LogIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 휴지통 아이콘입니다. 지우는 버튼에 씁니다.
-//
-// ★ 글자("삭제")나 × 대신 쓰는 이유
-//   × 는 "닫기" 로 읽히기 쉽습니다. 알림함에서는 닫는 것과 지우는 것이
-//   전혀 다른 일이라, 잘못 누르면 되돌릴 수 없습니다.
 export function TrashIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
-      {/* 뚜껑과 손잡이 */}
       <path d="M4 7H20" {...stroke} />
       <path d="M9.5 7V5.5C9.5 5.22386 9.72386 5 10 5H14C14.2761 5 14.5 5.22386 14.5 5.5V7" {...stroke} />
-      {/* 통 */}
       <path d="M6 7L6.8 19.1C6.82 19.6 7.24 20 7.74 20H16.26C16.76 20 17.18 19.6 17.2 19.1L18 7" {...stroke} />
-      {/* 안쪽 줄 둘 */}
       <path d="M10 11V16M14 11V16" {...stroke} />
     </IconBase>
   );
 }
 
-// 작업이력 아이콘입니다. 시계를 되감는 모양 — "지난 일" 을 뜻합니다.
-// 로그조회(문서 모양)와 한눈에 구분되어야 해서 다른 모양으로 그렸습니다.
 export function HistoryIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
-      {/* 12시에서 왼쪽으로 살짝 열린 원입니다. 되감기는 느낌을 줍니다. */}
       <path d="M4 12a8 8 0 1 0 2.5-5.8" {...stroke} />
-      {/* 되감기 화살표 */}
       <path d="M3.5 4.5V9.5H8.5" {...stroke} />
-      {/* 시곗바늘 */}
       <path d="M12 7.5V12L15 14" {...stroke} />
     </IconBase>
   );
 }
 
-// 비상(경고) 아이콘입니다. 원본 svg 가 없어 직접 그렸습니다.
 export function AlertIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -220,7 +191,6 @@ export function AlertIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-// 자물쇠만 원본 svg 가 없어 여기서 직접 그렸습니다. (로그인 화면 비밀번호 칸)
 export function LockIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <IconBase {...props}>
@@ -229,6 +199,185 @@ export function LockIcon(props: SVGProps<SVGSVGElement>) {
         d="M8.25 10.25V7.5C8.25 5.43 9.93 3.75 12 3.75C14.07 3.75 15.75 5.43 15.75 7.5V10.25"
         {...stroke}
       />
+    </IconBase>
+  );
+}
+
+export function NoteIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M4.5 4.6C4.5 4.26863 4.76863 4 5.1 4H14L19.5 9.5V19.4C19.5 19.7314 19.2314 20 18.9 20H5.1C4.76863 20 4.5 19.7314 4.5 19.4V4.6Z"
+        {...plainStroke}
+      />
+      <path d="M13.5 4V10H19.5" {...stroke} />
+      <path d="M8 13H14M8 16.5H12" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <circle cx="17.5" cy="6" r="2.5" {...plainStroke} />
+      <circle cx="6.5" cy="12" r="2.5" {...plainStroke} />
+      <circle cx="17.5" cy="18" r="2.5" {...plainStroke} />
+      <path d="M8.9 10.8L15.1 7.2M8.9 13.2L15.1 16.8" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function PlusIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 5.5V18.5M5.5 12H18.5" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function ChevronRightIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M9.5 5.5L16 12L9.5 18.5" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function FolderIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M3.5 6.1C3.5 5.76863 3.76863 5.5 4.1 5.5H9.2L11.2 8H19.9C20.2314 8 20.5 8.26863 20.5 8.6V17.9C20.5 18.2314 20.2314 18.5 19.9 18.5H4.1C3.76863 18.5 3.5 18.2314 3.5 17.9V6.1Z"
+        {...plainStroke}
+      />
+    </IconBase>
+  );
+}
+
+export function PencilIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M4.5 19.5L5.2 15.8L15.9 5.1C16.3 4.7 16.9 4.7 17.3 5.1L18.9 6.7C19.3 7.1 19.3 7.7 18.9 8.1L8.2 18.8L4.5 19.5Z" {...plainStroke} />
+      <path d="M14.4 6.6L17.4 9.6" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function DownloadIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 4V15M12 15L8 11M12 15L16 11" {...stroke} />
+      <path d="M4.5 17V19.4C4.5 19.7314 4.76863 20 5.1 20H18.9C19.2314 20 19.5 19.7314 19.5 19.4V17" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function UploadIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 16V5M12 5L8 9M12 5L16 9" {...stroke} />
+      <path d="M4.5 17V19.4C4.5 19.7314 4.76863 20 5.1 20H18.9C19.2314 20 19.5 19.7314 19.5 19.4V17" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function ListViewIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path d="M4.5 7H19.5M4.5 12H19.5M4.5 17H19.5" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function CardViewIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="4.5" width="7" height="7" rx="1" {...plainStroke} />
+      <rect x="13" y="4.5" width="7" height="7" rx="1" {...plainStroke} />
+      <rect x="4" y="13" width="7" height="7" rx="1" {...plainStroke} />
+      <rect x="13" y="13" width="7" height="7" rx="1" {...plainStroke} />
+    </IconBase>
+  );
+}
+
+export function NarrowIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <rect x="7" y="4.5" width="10" height="15" rx="1" {...plainStroke} />
+      <path d="M4 7.5V16.5M20 7.5V16.5" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function WideIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="1" {...plainStroke} />
+      <path d="M7 9H17M7 12.5H17M7 16H13" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function StarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M12 4L14.4 9.1L20 9.9L16 13.8L16.9 19.4L12 16.8L7.1 19.4L8 13.8L4 9.9L9.6 9.1L12 4Z"
+        {...plainStroke}
+      />
+    </IconBase>
+  );
+}
+
+export function StarFilledIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <path
+        d="M12 4L14.4 9.1L20 9.9L16 13.8L16.9 19.4L12 16.8L7.1 19.4L8 13.8L4 9.9L9.6 9.1L12 4Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+      />
+    </IconBase>
+  );
+}
+
+export function UnlockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <rect x="5" y="10.5" width="14" height="9.5" rx="1.2" {...plainStroke} />
+      <path d="M8.2 10.5V7.8C8.2 5.7 9.9 4 12 4C13.7 4 15.2 5.1 15.7 6.7" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function ClockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="8" {...plainStroke} />
+      <path d="M12 7.5V12L15 14" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function ServerLinkIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <rect x="4" y="5" width="16" height="6" rx="1" {...plainStroke} />
+      <rect x="4" y="13" width="16" height="6" rx="1" {...plainStroke} />
+      <path d="M7.5 8H8.5M7.5 16H8.5" {...stroke} />
+    </IconBase>
+  );
+}
+
+export function UsersIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <IconBase {...props}>
+      <circle cx="9" cy="8" r="3.2" {...plainStroke} />
+      <path d="M3.5 19.5C3.5 16.6 5.9 14.5 9 14.5C12.1 14.5 14.5 16.6 14.5 19.5" {...stroke} />
+      <path d="M16 5.2C17.5 5.6 18.5 6.7 18.5 8.2C18.5 9.6 17.6 10.7 16.3 11.1" {...stroke} />
+      <path d="M17.5 14.9C19.4 15.5 20.5 16.9 20.5 19" {...stroke} />
     </IconBase>
   );
 }

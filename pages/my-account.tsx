@@ -14,9 +14,6 @@ import { BUSINESS_DIVISIONS } from "@/lib/businessDivisions";
 import { useMyAccount } from "@/lib/accounts/useAccounts";
 import { BUSINESS_DIVISION_LABEL } from "@/lib/businessDivisions";
 
-// 내 계정 화면입니다.
-// 본인이 고칠 수 있는 것(이름·이메일·번호·비밀번호)과
-// 관리자만 바꿀 수 있는 것(아이디·소속 파트·권한)을 나눠서 보여 줍니다.
 export default function MyAccountPage() {
   const {
     account,
@@ -35,7 +32,6 @@ export default function MyAccountPage() {
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState(false);
 
-  // 계정을 받아오면 입력칸을 채웁니다.
   useEffect(() => {
     if (account === null) return;
 
@@ -80,16 +76,12 @@ export default function MyAccountPage() {
 
   return (
     <Shell>
-      {/* 저장 결과는 오른쪽 위 쪽지로 알립니다.
-          본문 안에서 글자만 바뀌면 눈치채지 못하고 지나갑니다. */}
       <Toast
         message={profileMessage}
         tone={profileError ? "error" : "success"}
         onDone={() => setProfileMessage("")}
       />
 
-      {/* 아이디·권한·사용여부는 관리자만 바꿀 수 있습니다.
-          소속 파트는 관리자 본인이 직접 옮길 수 있습니다. (아래) */}
       <Panel
         title="계정 정보"
         description={
@@ -101,9 +93,6 @@ export default function MyAccountPage() {
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           <ReadOnlyRow label="아이디" value={account.loginId} mono />
 
-          {/* ★ 관리자는 자기 파트를 옮길 수 있습니다.
-              옮기는 순간 보이는 서버와 계정이 통째로 바뀝니다.
-              막는 벽이 아니라 "지금 보고 있는 창" 에 가깝습니다. */}
           {canChangeDivision ? (
             <div className="flex min-w-0 items-center gap-3">
               <label
@@ -147,7 +136,6 @@ export default function MyAccountPage() {
         ) : null}
       </Panel>
 
-      {/* 본인이 고칠 수 있는 값입니다. */}
       <Panel title="내 정보">
         <form onSubmit={handleProfileSubmit} className="space-y-3">
           <FormRow labelWidth="md" label="이름" htmlFor="my-name">
@@ -209,7 +197,6 @@ export default function MyAccountPage() {
   );
 }
 
-// 화면 껍데기입니다. 불러오는 중에도 제목은 그대로 보이게 합니다.
 function Shell({ children }: { children?: ReactNode }) {
   return (
     <>
@@ -217,9 +204,6 @@ function Shell({ children }: { children?: ReactNode }) {
         <title>내 계정 | PingCheck</title>
       </Head>
 
-      {/* 설정 화면이라 본문을 넓게 쓸 일이 없습니다.
-          제목까지 한 덩어리로 묶어 가운데에 둡니다.
-          (제목만 왼쪽 끝에 있으면 아래 상자들과 어긋나 보입니다) */}
       <div className="px-6 py-4">
         <div className="mx-auto max-w-[720px] space-y-4">
           <PageHeader breadcrumb={["내 계정"]} title="내 계정" />
@@ -230,20 +214,3 @@ function Shell({ children }: { children?: ReactNode }) {
   );
 }
 
-// 화면 모드와 알림 설정입니다.
-//
-// 두 값의 저장 위치가 다릅니다.
-// - 화면 모드: 브라우저(localStorage). 기기마다 다를 수 있는 값이고,
-//              화면이 그려지기 전에 적용돼야 해서 서버에 둘 수 없습니다.
-// - 알림     : 계정(서버). 사람 단위 설정이라 다른 PC 로 로그인해도 따라옵니다.
-
-// 설명과 토글이 있는 한 줄입니다.
-
-// 비밀번호 변경입니다.
-//
-// 지금은 로그인 자체가 흉내이므로 실제로 바뀌지 않습니다.
-// 백엔드가 붙으면 이 안에서 PATCH /api/accounts/me/password 를 부르면 됩니다.
-
-// 보기 전용 줄입니다.
-
-// 입력 줄입니다.

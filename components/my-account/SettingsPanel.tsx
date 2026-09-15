@@ -4,15 +4,6 @@ import { Toggle } from "@/components/ui/Toggle";
 import type { Account } from "@/lib/accounts/types";
 import { useTheme } from "@/lib/theme";
 
-// 로그인을 유지할 시간입니다.
-//
-// ★ 사람마다 자리가 다릅니다.
-//   관제는 화면을 계속 띄워 둬야 해서 "영구" 가 필요하고,
-//   사무실 PC 는 짧게 끊는 편이 안전합니다.
-//   그래서 시스템 설정이 아니라 **계정마다** 정합니다.
-//
-// ※ 백엔드의 SESSION_TTL_CHOICES 와 같은 값이어야 합니다.
-//   (pingcheck-be/src/modules/accounts/account.types.ts)
 const TTL_CHOICES: readonly { value: number | null; label: string }[] = [
   { value: 10, label: "10분" },
   { value: 15, label: "15분" },
@@ -24,7 +15,6 @@ const TTL_CHOICES: readonly { value: number | null; label: string }[] = [
   { value: null, label: "영구" },
 ];
 
-// select 는 값을 문자열로만 다룹니다. null 을 담을 수 없어 약속된 글자를 씁니다.
 const FOREVER = "forever";
 
 export function SettingsPanel({
@@ -68,11 +58,6 @@ export function SettingsPanel({
           toggleLabel="알림 받기"
         />
 
-        {/* ── 로그인 유지 시간 ──────────────────────────────────────────
-            ★ 여기서 말하는 "아무것도 안 함" 은 사람이 누르지 않은 것입니다.
-              대시보드가 15초마다 스스로 서버에 물어보는 것은 활동으로 치지
-              않습니다. 그렇게 하지 않으면 화면을 띄워만 둬도 영원히
-              로그인 상태가 되어 이 설정이 아무 뜻이 없어집니다. */}
         <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
           <div className="min-w-0">
             <p className="text-b2_body_m font-medium text-body">로그인 유지 시간</p>

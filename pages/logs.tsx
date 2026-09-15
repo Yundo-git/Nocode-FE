@@ -6,10 +6,6 @@ import { LogFilters } from "@/components/logs/LogFilters";
 import { LogTable } from "@/components/logs/LogTable";
 import { useLogs } from "@/lib/logs/useLogs";
 
-// 로그조회 화면입니다.
-//
-// 대시보드의 "실시간 로그" 는 방금 일어난 몇 건만 보여 주고,
-// 여기서는 저장된 전체를 조건으로 찾아봅니다.
 export default function LogsPage() {
   const {
     rows,
@@ -25,8 +21,6 @@ export default function LogsPage() {
     downloading,
   } = useLogs();
 
-  // 내려받기 결과입니다. 잘렸거나 실패했을 때만 알립니다.
-  // 잘 받아졌으면 파일이 내려오는 것 자체가 신호라 따로 알리지 않습니다.
   const [notice, setNotice] = useState("");
 
   const handleDownload = async () => {
@@ -41,10 +35,6 @@ export default function LogsPage() {
 
       <Toast message={notice} tone="error" onDone={() => setNotice("")} />
 
-      {/* ★ 화면 높이에 맞춰 채웁니다. 페이지 전체가 스크롤되지 않게 하려는 것입니다.
-          표가 길어졌을 때 페이지가 통째로 내려가면 검색 조건과 쪽 번호가
-          화면 밖으로 밀려나, 다음 쪽으로 가려고 매번 끝까지 내려야 합니다.
-          아래 표 안쪽만 스크롤됩니다. (머리글은 sticky 로 붙어 있습니다) */}
       <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "로그조회"]} title="로그조회" />
 

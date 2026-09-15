@@ -12,7 +12,6 @@ type AccountTableProps = {
   onPageChange: (next: number) => void;
   onPageSizeChange: (next: number) => void;
   onToggleEnabled: (id: string) => void;
-  /** 관리자일 때만 참입니다. 등록 버튼과 줄 누르기를 켭니다. */
   canManage: boolean;
   onCreateClick: () => void;
   onRowClick: (account: Account) => void;
@@ -20,7 +19,6 @@ type AccountTableProps = {
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
 
-// 파트 관리자는 눈에 띄게 표시합니다. 일반 계정은 조용히 둡니다.
 function RoleBadge({ role }: { role: Account["role"] }) {
   if (role === "viewer") {
     return <span className="text-muted">{ROLE_LABEL.viewer}</span>;
@@ -54,7 +52,6 @@ export function AccountTable({
         </span>
 
         <div className="flex items-center gap-2">
-          {/* 등록 버튼은 관리자에게만 보입니다. */}
           {canManage ? (
             <button
               type="button"
@@ -117,7 +114,6 @@ export function AccountTable({
               rows.map((account) => (
                 <tr
                   key={account.id}
-                  // 관리자만 줄을 눌러 수정 창을 열 수 있습니다.
                   onClick={canManage ? () => onRowClick(account) : undefined}
                   className={canManage ? "cursor-pointer" : undefined}
                 >
@@ -129,7 +125,6 @@ export function AccountTable({
                   </td>
                   <td>{account.email}</td>
                   <td className="font-mono">{account.phone}</td>
-                  {/* 토글을 눌렀을 때 줄 클릭(수정 창)까지 일어나지 않게 막습니다. */}
                   <td className="center" onClick={(event) => event.stopPropagation()}>
                     <Toggle
                       checked={account.enabled}

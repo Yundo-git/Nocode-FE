@@ -16,8 +16,6 @@ type AccountFiltersProps = {
   onSearch: (values: AccountFilterValues) => void;
 };
 
-// 검색 조건 영역입니다. 서버관리와 같은 모양을 씁니다.
-// 입력 중인 값은 여기서만 들고 있다가 "검색" 을 눌러야 위로 전달합니다.
 export function AccountFilters({ onSearch }: AccountFiltersProps) {
   const [draft, setDraft] = useState<AccountFilterValues>(EMPTY_ACCOUNT_FILTERS);
 

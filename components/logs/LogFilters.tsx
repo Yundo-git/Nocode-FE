@@ -27,8 +27,6 @@ type LogFiltersProps = {
   onSearch: (values: Draft) => void;
 };
 
-// 로그 조회 조건입니다.
-// "특정 시간 · 특정 장비 · 특정 종류" 를 고르는 것이 목적입니다.
 export function LogFilters({ onSearch }: LogFiltersProps) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
 
@@ -36,7 +34,6 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
 
-  // "초기화" 를 누를 때마다 올립니다. 기간 칸을 새로 만들어 "전체" 로 되돌립니다.
   const [resetKey, setResetKey] = useState(0);
 
   const handleReset = () => {
@@ -47,8 +44,6 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
 
   return (
     <FilterForm onSubmit={() => onSearch(draft)} onReset={handleReset}>
-      {/* 기간. 서버관리와 같은 칸을 씁니다.
-          다만 여기는 시각까지 고릅니다 — 장애는 몇 시 몇 분인지가 중요합니다. */}
       <DateRangeField
         key={resetKey}
         label="조회 기간"
@@ -59,12 +54,6 @@ export function LogFilters({ onSearch }: LogFiltersProps) {
         onChange={(next) => setDraft((prev) => ({ ...prev, ...next }))}
       />
 
-      {/* 장비를 검색어로 찾습니다. 서버관리의 "서버명 · IP" 와 같은 방식입니다.
-          ★ 전에는 장비를 전부 담은 선택 상자였습니다.
-            1,000대가 되면 상자에서 찾는 것도 어렵고, 목록을 받는 것만으로
-            60KB 가 넘어갔습니다.
-          ★ 로그에는 그 시점의 이름과 IP 가 적혀 있어, 장비 이름을 바꿔도
-            **예전 이름으로 과거 기록을 찾을 수 있습니다.** */}
       <FilterField label="장비명 · IP" htmlFor="log-keyword">
         <input
           id="log-keyword"

@@ -19,12 +19,6 @@ import {
   type ServerFilterValues,
 } from "@/lib/servers/types";
 
-// 서버관리 화면입니다.
-//
-// ★ 검색과 쪽 나누기를 **서버가** 합니다.
-//   예전에는 전체를 받아 브라우저에서 걸렀습니다.
-//   장비가 1,000대가 되면 목록 전체를 내려받는 것 자체가 부담이라 바꿨습니다.
-// 주소를 직접 쳐서 들어오는 것도 막습니다. (사이드바에서 감추는 것만으로는 부족)
 export default function ServersPageRoute() {
   return (
     <RequirePermission allow={canManageServers}>
@@ -46,15 +40,11 @@ function ServersPage() {
     importServers,
   } = useServerActions();
 
-  // 버튼을 숨기는 것은 화면 정리일 뿐입니다.
-  // 실제 차단은 API 가 합니다. (pingcheck-be 의 requireServerManager)
   const canManage = account !== null && canManageServers(account);
 
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
   const [registerOpen, setRegisterOpen] = useState(false);
-  // null 이면 새로 등록하는 창, 값이 있으면 그 장비를 고치는 창입니다.
   const [editing, setEditing] = useState<Server | null>(null);
-  // 실패했을 때 보여 줄 문구입니다. 비어 있으면 창이 닫힌 상태입니다.
   const [failMessage, setFailMessage] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -74,10 +64,6 @@ function ServersPage() {
     });
   }, []);
 
-  // 이번 쪽이 모두 선택돼 있으면 이번 쪽만 풀고, 아니면 이번 쪽을 모두 더합니다.
-  //
-  // ★ "전체 선택" 이 아니라 "이 쪽 선택" 입니다.
-  //   쪽 나누기를 서버가 하므로 브라우저는 다른 쪽에 무엇이 있는지 모릅니다.
   const handleToggleSelectAll = useCallback(() => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -110,7 +96,6 @@ function ServersPage() {
         return;
       }
 
-      // 서버가 상태와 로그를 함께 바꿨으므로 지금 쪽을 다시 받습니다.
       table.reload();
     },
     [table, toggleEnabled],
@@ -134,15 +119,12 @@ function ServersPage() {
         return;
       }
 
-      // 새로 등록한 것은 맨 위에 오므로 첫 쪽으로 돌아갑니다.
       if (editing === null) table.setPage(1);
       table.reload();
     },
     [addServer, updateServer, editing, table],
   );
 
-  // 내려받기가 잘렸거나 실패했을 때만 알립니다.
-  // 잘 받아졌으면 파일이 내려오는 것 자체가 신호라 따로 알리지 않습니다.
   const handleDownload = useCallback(async () => {
     const message = await downloadServers(table.filters);
 
@@ -171,17 +153,11 @@ function ServersPage() {
         <title>서버관리 | PingCheck</title>
       </Head>
 
-      {/* ★ 화면 높이에 맞춰 채웁니다. 페이지 전체가 스크롤되지 않게 하려는 것입니다.
-          표가 길어졌을 때 페이지가 통째로 내려가면 검색 조건과 쪽 번호가
-          화면 밖으로 밀려나, 다음 쪽으로 가려고 매번 끝까지 내려야 합니다.
-          아래 표 안쪽만 스크롤됩니다. (머리글은 sticky 로 붙어 있습니다) */}
       <div className="flex h-full min-h-0 flex-col gap-4 px-6 py-4">
         <PageHeader breadcrumb={["시스템", "서버관리"]} title="서버관리" />
 
-        {/* 검색 조건 */}
         <ServerFilters onSearch={table.search} />
 
-        {/* 서버 목록 */}
         {table.status === "error" ? (
           <div className="panel px-4 py-10 text-center text-b2_body_r text-muted">
             서버 목록을 불러오지 못했습니다.
@@ -231,7 +207,6 @@ function ServersPage() {
           onClose={() => setImportOpen(false)}
           onDownloadTemplate={downloadTemplate}
           onSubmit={importServers}
-          // 새로 들어온 것이 맨 위에 오므로 첫 쪽으로 돌아갑니다.
           onDone={() => {
             table.setPage(1);
             table.reload();
